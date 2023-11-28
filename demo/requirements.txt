@@ -1,0 +1,12 @@
+opencv-python
+torch==1.12.1
+torchvision
+transformers==4.32.1
+scipy
+einops
+lvis
+fairscale
+git+https://github.com/facebookresearch/detectron2@017abbf
+git+https://github.com/IDEA-Research/detrex@776058e
+git+https://github.com/openai/CLIP.git@d50d76d
+git+https://github.com/shenyunhang/ape
