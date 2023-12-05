@@ -25,14 +25,14 @@ APE: Aligning and Prompting Everything All at Once for Universal Visual Percepti
 
 ## :hammer_and_wrench: Install 
 
-1. Clone the APE repository from GitHub.
+1. Clone the APE repository from GitHub:
 
 ```bash
 git clone https://github.com/shenyunhang/APE
 cd APE
 ```
 
-2. Install the required dependencies and APE.
+2. Install the required dependencies and APE:
 
 ```bash
 pip3 install -r requirements.txt
