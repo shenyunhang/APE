@@ -1,8 +1,9 @@
-import os
-import tqdm
-from collections import defaultdict
-import json
 import argparse
+import json
+import os
+from collections import defaultdict
+
+import tqdm
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -42,7 +43,7 @@ if __name__ == "__main__":
         file_name = img["file_name"]
         file_path = os.path.join(args.image_root, file_name)
         image_ext = file_path.split(".")[-1]
-        file_path = file_path[:-len(image_ext)] + "json"
+        file_path = file_path[: -len(image_ext)] + "json"
 
         if os.path.isfile(file_path):
             try:

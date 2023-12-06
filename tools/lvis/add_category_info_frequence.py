@@ -1,6 +1,6 @@
 import argparse
-import json
 import copy
+import json
 
 from tqdm import tqdm
 
