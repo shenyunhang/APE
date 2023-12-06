@@ -1,6 +1,8 @@
-# APE
+# APE: Aligning and Prompting Everything All at Once for Universal Visual Perception
 
-APE: Aligning and Prompting Everything All at Once for Universal Visual Perception
+<p align="center">
+    <img src="./.asset/ape.png" width="75%" height="75%">
+</p>
 
 ---
 
