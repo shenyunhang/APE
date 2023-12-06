@@ -1,7 +1,7 @@
 # APE: Aligning and Prompting Everything All at Once for Universal Visual Perception
 
 <p align="center">
-    <img src="./.asset/ape.png" width="100%" height="100%">
+    <img src="./.asset/ape.png" width="96%" height="96%">
 </p>
 
 
@@ -10,7 +10,7 @@
 ---
 
 <p align="center">
-    <img src="./.asset/example_1.png" width="100%" height="100%">
+    <img src="./.asset/example_1.png" width="96%" height="96%">
 </p>
 
 
