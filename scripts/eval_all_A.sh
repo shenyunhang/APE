@@ -4,14 +4,14 @@ set -x
 set -e
 
 
-init_checkpoint="output2/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VG_REFCOCO/ape_deta/ape_deta_vitl_eva02_lsj_cp_720k_20230504_002019/model_final.pth"
+init_checkpoint="output2/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VG/ape_deta/ape_deta_vitl_eva02_lsj_cp_720k_20230504_002019/model_final.pth"
 
 num_gpus=7
 output_dir="./output2/eval_all/A/"
 
 
 config_files=(
-	"configs/LVISCOCOCOCOSTUFF_O365_OID_VG_REFCOCO/ape_deta/ape_deta_vitl_eva02_lsj1024_cp_720k.py"
+	"configs/LVISCOCOCOCOSTUFF_O365_OID_VG/ape_deta/ape_deta_vitl_eva02_lsj1024_cp_720k.py"
 	"configs/COCO_InstanceSegmentation/ape_deta/ape_deta_vitl_eva02_lsj1024_cp_12ep.py"
 	"configs/COCO_PanopticSegmentation/ape_deta/ape_deta_vitl_eva02_lsj1024.py"
 	"configs/ODinW_Detection/ape_deta/ape_deta_vitl_eva02_lsj1024_13.py"
