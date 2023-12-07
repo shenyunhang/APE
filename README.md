@@ -5,7 +5,7 @@
 </p>
 
 
-<font size=7><div align='center' > :grapes: \[[Read our arXiv Paper](https://arxiv.org/abs/2312.02153)\] &nbsp; :apple: \[[Try our Demo](https://huggingface.co/spaces/shenyunhang/APE)\] </div></font>
+<font size=7><div align='center' > :grapes: \[[Read our arXiv Paper](https://arxiv.org/abs/2312.02153)\] &nbsp; :apple: \[[Try our Online Demo](https://huggingface.co/spaces/shenyunhang/APE)\] </div></font>
 
 ---
 
