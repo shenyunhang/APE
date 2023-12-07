@@ -1,11 +1,17 @@
-# APE
+# APE: Aligning and Prompting Everything All at Once for Universal Visual Perception
 
-APE: Aligning and Prompting Everything All at Once for Universal Visual Perception
+<p align="center">
+    <img src="./.asset/ape.png" width="96%" height="96%">
+</p>
+
+
+<font size=7><div align='center' > :grapes: \[[Read our arXiv Paper](https://arxiv.org/abs/2312.02153)\] &nbsp; :apple: \[[Try our Demo (CPU version)](https://huggingface.co/spaces/shenyunhang/APE)\] </div></font>
 
 ---
 
-
-[[`Paper`](https://arxiv.org/abs/2312.02153)] [[`Demo`](https://huggingface.co/spaces/shenyunhang/APE)] [[`BibTex`](#black_nib-citation)]
+<p align="center">
+    <img src="./.asset/example_1.png" width="96%" height="96%">
+</p>
 
 
 ## :bulb: Highlight
