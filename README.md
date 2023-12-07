@@ -56,6 +56,12 @@ python3 app.py
 ```
 If you have GPUs, this demo will detect them and use one GPU.
 
+Please feel free to try our [Online Demo](https://huggingface.co/spaces/shenyunhang/APE)!
+
+<p align="center">
+<img src="./.asset/demo.png" width="96%" height="96%">
+</p>
+
 
 ## :books: Data Prepare
 Following [here](https://github.com/shenyunhang/APE/blob/main/datasets/README.md) to prepare the following datasets:
