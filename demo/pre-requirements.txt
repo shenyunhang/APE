@@ -1,6 +1,4 @@
-opencv-python
-torch==1.12.1
-torchvision
-transformers==4.32.1
-scipy
-cython
+--index-url https://download.pytorch.org/whl/cu118
+torch==2.0.1
+torchvision==0.15.2
+torchaudio==2.0.2

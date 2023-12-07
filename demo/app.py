@@ -24,8 +24,8 @@ from predictor_lazy import VisualizationDemo
 
 this_dir = path.dirname(path.abspath(__file__))
 
-os.system("git clone https://github.com/shenyunhang/APE.git")
-os.system("python3.10 -m pip install -e APE/")
+# os.system("git clone https://github.com/shenyunhang/APE.git")
+# os.system("python3.10 -m pip install -e APE/")
 
 example_list = [
     [
@@ -83,7 +83,7 @@ example_list = [
     [
         this_dir + "/examples/Transformers.webp",
         "Optimus Prime",
-        0.08,
+        0.11,
         ["object detection", "instance segmentation"],
     ],
 ]
@@ -296,6 +296,8 @@ def load_APE_A():
         "model.model_language.cache_dir=''",
         "model.model_vision.select_box_nums_for_evaluation=500",
         "model.model_vision.backbone.net.xattn=False",
+        "model.model_vision.transformer.encoder.pytorch_attn=True",
+        "model.model_vision.transformer.decoder.pytorch_attn=True",
     ]
     if running_device == "cpu":
         args.opts += [
@@ -342,6 +344,8 @@ def load_APE_B():
         "model.model_vision.select_box_nums_for_evaluation=500",
         "model.model_vision.text_feature_bank_reset=True",
         "model.model_vision.backbone.net.xattn=False",
+        "model.model_vision.transformer.encoder.pytorch_attn=True",
+        "model.model_vision.transformer.decoder.pytorch_attn=True",
     ]
     if running_device == "cpu":
         args.opts += [
@@ -388,6 +392,8 @@ def load_APE_C():
         "model.model_vision.select_box_nums_for_evaluation=500",
         "model.model_vision.text_feature_bank_reset=True",
         "model.model_vision.backbone.net.xattn=False",
+        "model.model_vision.transformer.encoder.pytorch_attn=True",
+        "model.model_vision.transformer.decoder.pytorch_attn=True",
     ]
     if running_device == "cpu":
         args.opts += [
@@ -434,6 +440,8 @@ def load_APE_D():
         "model.model_vision.select_box_nums_for_evaluation=500",
         "model.model_vision.text_feature_bank_reset=True",
         "model.model_vision.backbone.net.xattn=False",
+        "model.model_vision.transformer.encoder.pytorch_attn=True",
+        "model.model_vision.transformer.decoder.pytorch_attn=True",
     ]
     if running_device == "cpu":
         args.opts += [
@@ -577,7 +585,7 @@ def APE_D_tab():
                 )
 
                 score_threshold = gr.Slider(
-                    label="Score Threshold", minimum=0.01, maximum=1.0, value=0.3, step=0.01
+                    label="Score Threshold", minimum=0.01, maximum=1.0, value=0.1, step=0.01
                 )
 
                 output_type = gr.CheckboxGroup(
@@ -625,7 +633,7 @@ def comparison_tab():
                 )
 
                 score_threshold = gr.Slider(
-                    label="Score Threshold", minimum=0.01, maximum=1.0, value=0.2, step=0.01
+                    label="Score Threshold", minimum=0.01, maximum=1.0, value=0.1, step=0.01
                 )
 
                 output_type = gr.CheckboxGroup(

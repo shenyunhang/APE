@@ -151,6 +151,7 @@ class MultiScaleDeformableAttention(nn.Module):
         img2col_step: int = 64,
         dropout: float = 0.1,
         batch_first: bool = False,
+        pytorch_attn: bool = False,
     ):
         super().__init__()
         if embed_dim % num_heads != 0:
@@ -183,6 +184,8 @@ class MultiScaleDeformableAttention(nn.Module):
         self.output_proj = nn.Linear(embed_dim, embed_dim)
 
         self.init_weights()
+
+        self.pytorch_attn = pytorch_attn
 
     def init_weights(self):
         """
@@ -314,7 +317,7 @@ class MultiScaleDeformableAttention(nn.Module):
             )
 
         # the original impl for fp32 training
-        if torch.cuda.is_available() and value.is_cuda:
+        if torch.cuda.is_available() and value.is_cuda and not self.pytorch_attn:
             if torch.jit.is_scripting() or torch.jit.is_tracing():
                 output = torch.ops.ape.ms_deform_attn_forward(
                     # value.to(torch.float32),

@@ -1,7 +1,6 @@
+transformers
+cython
 opencv-python
-torch==1.12.1
-torchvision
-transformers==4.32.1
 scipy
 einops
 lvis

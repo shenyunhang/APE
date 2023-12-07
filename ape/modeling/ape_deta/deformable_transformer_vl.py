@@ -29,6 +29,7 @@ class DeformableDetrTransformerEncoderVL(TransformerLayerSequence):
         num_feature_levels: int = 4,
         vl_layer=None,
         use_act_checkpoint=False,
+        pytorch_attn=False,
     ):
         super(DeformableDetrTransformerEncoderVL, self).__init__(
             transformer_layers=BaseTransformerLayer(
@@ -38,6 +39,7 @@ class DeformableDetrTransformerEncoderVL(TransformerLayerSequence):
                     dropout=attn_dropout,
                     batch_first=True,
                     num_levels=num_feature_levels,
+                    pytorch_attn=pytorch_attn,
                 ),
                 ffn=FFN(
                     embed_dim=embed_dim,
@@ -122,6 +124,7 @@ class DeformableDetrTransformerDecoderVL(TransformerLayerSequence):
         num_feature_levels: int = 4,
         use_act_checkpoint: bool = False,
         look_forward_twice: bool = False,
+        pytorch_attn=False,
     ):
         super(DeformableDetrTransformerDecoderVL, self).__init__(
             transformer_layers=BaseTransformerLayer(
@@ -138,6 +141,7 @@ class DeformableDetrTransformerDecoderVL(TransformerLayerSequence):
                         dropout=attn_dropout,
                         batch_first=True,
                         num_levels=num_feature_levels,
+                        pytorch_attn=pytorch_attn,
                     ),
                 ],
                 ffn=FFN(
