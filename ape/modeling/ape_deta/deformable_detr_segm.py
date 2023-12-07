@@ -246,6 +246,7 @@ class DeformableDETRSegm(DeformableDETR):
                 for metadata, dataset_entity in zip(self.metadata_list, self.dataset_entities):
                     text_list += get_text_list(metadata, dataset_entity)
                 text_list = text_list[:1203+365+601]
+                text_list = text_list[:1203]
                 cache = True
 
                 # from detectron2.data.catalog import MetadataCatalog
