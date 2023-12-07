@@ -314,7 +314,7 @@ class MultiScaleDeformableAttention(nn.Module):
             )
 
         # the original impl for fp32 training
-        if torch.cuda.is_available() and value.is_cuda:
+        if torch.cuda.is_available() and value.is_cuda and False:
             if torch.jit.is_scripting() or torch.jit.is_tracing():
                 output = torch.ops.ape.ms_deform_attn_forward(
                     # value.to(torch.float32),
