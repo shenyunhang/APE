@@ -245,15 +245,12 @@ class DeformableDETRSegm(DeformableDETR):
                 text_list = []
                 for metadata, dataset_entity in zip(self.metadata_list, self.dataset_entities):
                     text_list += get_text_list(metadata, dataset_entity)
-                text_list = text_list[:2500]
+                text_list = text_list[:1203+365+601]
                 cache = True
 
                 from detectron2.data.catalog import MetadataCatalog
-
-                metadata = MetadataCatalog.get("coco_2017_val")
-                text_list = get_text_list(metadata, "thing")
-                metadata = MetadataCatalog.get("coco_2017_train_panoptic_stuffonly")
-                text_list += get_text_list(metadata, "stuff")
+                metadata = MetadataCatalog.get("coco_2017_train_panoptic_separated")
+                text_list = get_text_list(metadata, "thing+stuff")
 
             outputs_l = self.model_language.forward_text(text_list, cache=cache)
             if "last_hidden_state_eot" in outputs_l:
@@ -588,8 +585,7 @@ class DeformableDETRSegm(DeformableDETR):
                     assert (
                         not torch.jit.is_scripting()
                     ), "Scripting is not supported for postprocess."
-                    iter_func = retry_if_cuda_oom(DeformableDETRSegm._postprocess_semantic)
-                    semantic_results = iter_func(
+                    semantic_results = DeformableDETRSegm._postprocess_semantic(
                         semantic_box_cls, semantic_mask_pred, batched_inputs, images
                     )
                     if (
@@ -859,6 +855,9 @@ class DeformableDETRSegm(DeformableDETR):
             if transform_eval:
                 mask_cls = F.softmax(mask_cls / T, dim=-1)  # already sigmoid
             mask_pred = mask_pred.sigmoid()
+            if mask_cls.size(1) > 1000:
+                mask_cls = mask_cls.cpu()
+                mask_pred = mask_pred.cpu()
             result = torch.einsum("qc,qhw->chw", mask_cls, mask_pred)
 
             r = sem_seg_postprocess(result, image_size, height, width)
