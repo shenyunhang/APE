@@ -24,6 +24,9 @@ from predictor_lazy import VisualizationDemo
 
 this_dir = path.dirname(path.abspath(__file__))
 
+os.system("git clone https://github.com/shenyunhang/APE.git")
+os.system("python3.10 -m pip install -e APE/")
+
 example_list = [
     [
         this_dir + "/examples/Totoro01.png",
@@ -292,11 +295,11 @@ def load_APE_A():
         "train.init_checkpoint='{}'".format(init_checkpoint),
         "model.model_language.cache_dir=''",
         "model.model_vision.select_box_nums_for_evaluation=500",
+        "model.model_vision.backbone.net.xattn=False",
     ]
     if running_device == "cpu":
         args.opts += [
             "model.model_language.dtype='float32'",
-            "model.model_vision.backbone.net.xattn=False",
         ]
     logger.info("Arguments: " + str(args))
     cfg = setup_cfg(args)
@@ -338,11 +341,11 @@ def load_APE_B():
         "model.model_language.cache_dir=''",
         "model.model_vision.select_box_nums_for_evaluation=500",
         "model.model_vision.text_feature_bank_reset=True",
+        "model.model_vision.backbone.net.xattn=False",
     ]
     if running_device == "cpu":
         args.opts += [
             "model.model_language.dtype='float32'",
-            "model.model_vision.backbone.net.xattn=False",
         ]
     logger.info("Arguments: " + str(args))
     cfg = setup_cfg(args)
@@ -384,11 +387,11 @@ def load_APE_C():
         "model.model_language.cache_dir=''",
         "model.model_vision.select_box_nums_for_evaluation=500",
         "model.model_vision.text_feature_bank_reset=True",
+        "model.model_vision.backbone.net.xattn=False",
     ]
     if running_device == "cpu":
         args.opts += [
             "model.model_language.dtype='float32'",
-            "model.model_vision.backbone.net.xattn=False",
         ]
     logger.info("Arguments: " + str(args))
     cfg = setup_cfg(args)
@@ -430,11 +433,11 @@ def load_APE_D():
         "model.model_language.cache_dir=''",
         "model.model_vision.select_box_nums_for_evaluation=500",
         "model.model_vision.text_feature_bank_reset=True",
+        "model.model_vision.backbone.net.xattn=False",
     ]
     if running_device == "cpu":
         args.opts += [
             "model.model_language.dtype='float32'",
-            "model.model_vision.backbone.net.xattn=False",
         ]
     logger.info("Arguments: " + str(args))
     cfg = setup_cfg(args)
@@ -746,9 +749,10 @@ if __name__ == "__main__":
     all_demo = {}
     all_cfg = {}
 
-    load_APE_A()
-    load_APE_B()
-    load_APE_C()
+    # load_APE_A()
+    # load_APE_B()
+    # load_APE_C()
+    save_memory = False
     load_APE_D()
 
     title = "APE: Aligning and Prompting Everything All at Once for Universal Visual Perception"

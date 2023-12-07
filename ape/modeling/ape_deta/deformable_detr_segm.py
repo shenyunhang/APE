@@ -248,9 +248,9 @@ class DeformableDETRSegm(DeformableDETR):
                 text_list = text_list[:1203+365+601]
                 cache = True
 
-                from detectron2.data.catalog import MetadataCatalog
-                metadata = MetadataCatalog.get("coco_2017_train_panoptic_separated")
-                text_list = get_text_list(metadata, "thing+stuff")
+                # from detectron2.data.catalog import MetadataCatalog
+                # metadata = MetadataCatalog.get("coco_2017_train_panoptic_separated")
+                # text_list = get_text_list(metadata, "thing+stuff")
 
             outputs_l = self.model_language.forward_text(text_list, cache=cache)
             if "last_hidden_state_eot" in outputs_l:

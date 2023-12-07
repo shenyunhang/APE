@@ -150,21 +150,21 @@ class VisualizationDemo(object):
             + MetadataCatalog.get(d).get("stuff_classes", default=["thing"])[1:]
         ]
 
-        self.metadata = MetadataCatalog.get(
-            "__unused_ape_" + "_".join([d for d in cfg.dataloader.train.dataset.names])
-        )
-        self.metadata.thing_classes = [
-            c
-            for d in ["coco_2017_train_panoptic_separated"]
-            for c in MetadataCatalog.get(d).get("thing_classes", default=[])
-            + MetadataCatalog.get(d).get("stuff_classes", default=["thing"])[1:]
-        ]
-        self.metadata.stuff_classes = [
-            c
-            for d in ["coco_2017_train_panoptic_separated"]
-            for c in MetadataCatalog.get(d).get("thing_classes", default=[])
-            + MetadataCatalog.get(d).get("stuff_classes", default=["thing"])[1:]
-        ]
+        # self.metadata = MetadataCatalog.get(
+        #     "__unused_ape_" + "_".join([d for d in cfg.dataloader.train.dataset.names])
+        # )
+        # self.metadata.thing_classes = [
+        #     c
+        #     for d in ["coco_2017_train_panoptic_separated"]
+        #     for c in MetadataCatalog.get(d).get("thing_classes", default=[])
+        #     + MetadataCatalog.get(d).get("stuff_classes", default=["thing"])[1:]
+        # ]
+        # self.metadata.stuff_classes = [
+        #     c
+        #     for d in ["coco_2017_train_panoptic_separated"]
+        #     for c in MetadataCatalog.get(d).get("thing_classes", default=[])
+        #     + MetadataCatalog.get(d).get("stuff_classes", default=["thing"])[1:]
+        # ]
 
         self.cpu_device = torch.device("cpu")
         self.instance_mode = instance_mode
