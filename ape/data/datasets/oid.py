@@ -6,6 +6,7 @@ import os
 from detectron2.data import DatasetCatalog, MetadataCatalog
 
 from .coco import custom_load_coco_json
+from .openimages_v6_category_image_count import OPENIMAGES_v6_CATEGORY_IMAGE_COUNT
 
 
 def register_oid_instances(name, metadata, json_file, image_root):
@@ -1450,13 +1451,14 @@ categories_seg = [
 ]
 
 
-def _get_builtin_metadata(cats):
+def _get_builtin_metadata(cats, class_image_count=None):
     id_to_name = {x["id"]: x["name"] for x in cats}
     thing_dataset_id_to_contiguous_id = {i + 1: i for i in range(len(cats))}
     thing_classes = [x["name"] for x in sorted(cats, key=lambda x: x["id"])]
     return {
         "thing_dataset_id_to_contiguous_id": thing_dataset_id_to_contiguous_id,
         "thing_classes": thing_classes,
+        "class_image_count": class_image_count,
     }
 
 
@@ -1559,7 +1561,7 @@ def register_all_oid(root):
     for key, (image_root, json_file) in _PREDEFINED_SPLITS_OPENIMAGES_V6_DETECTION.items():
         register_oid_instances(
             key,
-            _get_builtin_metadata(OPENIMAGES_V6_CATEGORIES),
+            _get_builtin_metadata(OPENIMAGES_V6_CATEGORIES, OPENIMAGES_v6_CATEGORY_IMAGE_COUNT),
             os.path.join(root, json_file) if "://" not in json_file else json_file,
             os.path.join(root, image_root),
         )
