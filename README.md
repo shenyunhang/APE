@@ -5,7 +5,7 @@
 </p>
 
 
-<font size=7><div align='center' > :grapes: \[[Read our arXiv Paper](https://arxiv.org/abs/2312.02153)\] &nbsp; :apple: \[[Try our Demo](https://huggingface.co/spaces/shenyunhang/APE)\] </div></font>
+<font size=7><div align='center' > :grapes: \[[Read our arXiv Paper](https://arxiv.org/abs/2312.02153)\] &nbsp; :apple: \[[Try our Online Demo](https://huggingface.co/spaces/shenyunhang/APE)\] </div></font>
 
 ---
 
@@ -55,6 +55,12 @@ cd APE/demo
 python3 app.py
 ```
 If you have GPUs, this demo will detect them and use one GPU.
+
+Please feel free to try our [Online Demo](https://huggingface.co/spaces/shenyunhang/APE)!
+
+<p align="center">
+<img src="./.asset/demo.png" width="96%" height="96%">
+</p>
 
 
 ## :books: Data Prepare
