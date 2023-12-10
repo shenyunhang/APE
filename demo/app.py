@@ -849,6 +849,7 @@ def APE_D_tab():
         gr.Examples(
             examples=example_list,
             inputs=[input_image, input_text, score_threshold, output_type],
+            examples_per_page=20,
         )
 
         # add_tail_info()
@@ -901,6 +902,7 @@ def comparison_tab():
         gr.Examples(
             examples=example_list,
             inputs=[input_image, input_text, score_threshold, output_type],
+            examples_per_page=20,
         )
 
         # add_tail_info()
