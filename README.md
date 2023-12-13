@@ -71,6 +71,12 @@ Following [here](https://github.com/shenyunhang/APE/blob/main/datasets/README.md
 | Train | &check; | &check; |   &check;  |   &check;  |    &check;   | &check; | &check; | &check; |  &check;  |  &check;  | &cross; | &cross; |   &cross;   | &cross; |  &cross; | &cross; |   &cross;  | &cross; | &cross; | &cross; | &cross; |
 |  Test | &check; | &check; |   &check;  |   &check;  |    &cross;   | &cross; | &check; | &cross; |  &cross;  |  &cross;  | &check; | &check; |   &check;   | &check; |  &check; | &check; |   &check;  | &check; | &check; | &check; | &check; |
 
+Noted we do not use `coco_2017_train` for training.
+
+Instead, we augment `lvis_v1_train` with annotations from coco, and keep the image set unchanged.
+
+And we register it as `lvis_v1_train+coco` for instance segmentation and `lvis_v1_train+coco_panoptic_separated` for panoptic segmentation.
+
 
 ## :test_tube: Inference
 
