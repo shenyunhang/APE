@@ -184,6 +184,8 @@ $DETECTRON2_DATASETS/
         instances_cocofied_{train,val}.json
     refcocog-umd/
         instances_cocofied_{train,val,test}.json
+    refcoco-unc/
+        instances_cocofied_{train,val,testA,testB}.json
     refcocoplus-unc/
         instances_cocofied_{train,val,testA,testB}.json
     refcoco-mixed/
