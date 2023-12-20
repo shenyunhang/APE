@@ -4,7 +4,7 @@ set -x
 set -e
 
 kwargs="model.model_vision.transformer.proposal_ambiguous=1"
-init_checkpoint="output2/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4x270k_20230829_162438/model_final.pth"
+init_checkpoint="output2/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4_1080k_mdl_20230829_162438/model_final.pth"
 output_dir="output2/eval_all/D_20230829_162438/"
 
 
