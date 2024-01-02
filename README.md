@@ -1,11 +1,21 @@
 # APE: Aligning and Prompting Everything All at Once for Universal Visual Perception
 
+
+<!-- 
+<a href='https://github.com/shenyunhang/APE'><img src='https://img.shields.io/badge/Project-Page-Green'></a>
+<a href='https://arxiv.org/abs/2312.02153'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a>
+<a href='https://huggingface.co/spaces/shenyunhang/APE'><img src='https://img.shields.io/badge/%F0%9F%A4%97-Demo-yellow'></a>
+<a href='https://huggingface.co/shenyunhang/APE'><img src='https://img.shields.io/badge/%F0%9F%A4%97-Model-yellow'></a>
+[![Code License](https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg)](https://github.com/tatsu-lab/stanford_alpaca/blob/main/LICENSE)
+-->
+
 <p align="center">
     <img src="./.asset/ape.png" width="96%" height="96%">
 </p>
 
 
 <font size=7><div align='center' > :grapes: \[[Read our arXiv Paper](https://arxiv.org/abs/2312.02153)\] &nbsp; :apple: \[[Try our Online Demo](https://huggingface.co/spaces/shenyunhang/APE)\] </div></font>
+
 
 ---
 
