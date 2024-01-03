@@ -117,8 +117,20 @@ python3.9 demo/demo_lazy.py \
 --with-sseg \
 --opts \
 train.init_checkpoint=/path/to/APE-D/checkpoint \
+model.model_language.cache_dir="" \
 model.model_vision.select_box_nums_for_evaluation=500 \
 model.model_vision.text_feature_bank_reset=True \
+```
+
+To disable `xformers`, add the following option:
+```
+model.model_vision.backbone.net.xattn=False \
+```
+
+To use `pytorch` version of `MultiScaleDeformableAttention`, add the following option:
+```
+model.model_vision.transformer.encoder.pytorch_attn=True \
+model.model_vision.transformer.decoder.pytorch_attn=True \
 ```
 
 
