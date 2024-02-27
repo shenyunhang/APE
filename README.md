@@ -30,6 +30,11 @@
 - **Perception in the Wild.** Detect and segment **everything** with thousands of vocabularies or language descriptions all at once.
 - **Flexible.** Support both foreground objects and background stuff for instance segmentation and semantic segmentation.
 
+## :fire: News
+* **`2024.02.27`** APE has been accepted to CVPR 2024!
+* **`2023.12.05`** Release training codes!
+* **`2023.12.05`** Release checkpoints!
+* **`2023.12.05`** Release inference codes and demo!
 
 ## :label: TODO 
 
@@ -64,7 +69,7 @@ pip3 install gradio
 cd APE/demo
 python3 app.py
 ```
-If you have GPUs, this demo will detect them and use one GPU.
+This demo will detect GPUs and use one GPU if you have GPUs.
 
 Please feel free to try our [Online Demo](https://huggingface.co/spaces/shenyunhang/APE)!
 
@@ -301,10 +306,10 @@ git clone https://huggingface.co/shenyunhang/APE
 If you find our work helpful for your research, please consider citing the following BibTeX entry.   
 
 ```bibtex
-@article{shen2023aligning,
+@inproceedings{APE,
   title={Aligning and Prompting Everything All at Once for Universal Visual Perception},
-  author={Yunhang Shen and Chaoyou Fu and Peixian Chen and Mengdan Zhang and Ke Li and Xing Sun and Yunsheng Wu and Shaohui Lin and Rongrong Ji},
-  journal={arXiv preprint arXiv:2312.02153},
-  year={2023}
+  author={Shen, Yunhang and Fu, Chaoyou and Chen, Peixian and Zhang, Mengdan and Li, Ke and Sun, Xing and Wu, Yunsheng and Lin, Shaohui and Ji, Rongrong},
+  journal={CVPR},
+  year={2024}
 }
 ```
