@@ -61,7 +61,7 @@ python3 -m pip install -e .
 ```
 
 
-## :arrow_forward: Demo Localy
+## :arrow_forward: Demo Locally
 
 **Web UI demo**
 ```
