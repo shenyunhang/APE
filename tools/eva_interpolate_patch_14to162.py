@@ -73,14 +73,11 @@ if __name__ == "__main__":
 
     checkpoint = torch.load(args.input, map_location=torch.device("cpu"))
 
-    print(checkpoint.keys())
-    if "module" in checkpoint:
-        checkpoint["model"] = checkpoint.pop("module")
-    print(checkpoint.keys())
-
     # interpolate patch_embed
     if "model" in checkpoint:
         patch_embed = checkpoint["model"]["patch_embed.proj.weight"]
+    elif "module" in checkpoint:
+        patch_embed = checkpoint["module"]["patch_embed.proj.weight"]
     else:
         patch_embed = checkpoint["visual.patch_embed.proj.weight"]
     C_o, C_in, H, W = patch_embed.shape
@@ -89,12 +86,16 @@ if __name__ == "__main__":
     )
     if "model" in checkpoint:
         checkpoint["model"]["patch_embed.proj.weight"] = patch_embed
+    elif "module" in checkpoint:
+        checkpoint["module"]["patch_embed.proj.weight"] = patch_embed
     else:
         checkpoint["visual.patch_embed.proj.weight"] = patch_embed
 
     # interpolate pos_embed too
     if "model" in checkpoint:
         interpolate_pos_embed(checkpoint["model"], new_size=16, image_size=args.image_size)
+    elif "module" in checkpoint:
+        interpolate_pos_embed(checkpoint["module"], new_size=16, image_size=args.image_size)
     else:
         checkpoint["pos_embed"] = checkpoint["visual.pos_embed"]
         interpolate_pos_embed(checkpoint, new_size=16, image_size=args.image_size)
@@ -103,9 +104,9 @@ if __name__ == "__main__":
     print("======== new state_dict ========")
     if "model" in checkpoint:
         for k, v in list(checkpoint["model"].items()):
-            checkpoint["model"]["backbone.net." + k] = checkpoint["model"].pop(k)
-            print("rename", k, "        ", "backbone.net." + k)
-        for k, v in list(checkpoint["model"].items()):
+            print(k, "        ", v.shape)
+    elif "module" in checkpoint:
+        for k, v in list(checkpoint["module"].items()):
             print(k, "        ", v.shape)
     else:
         for k, v in list(checkpoint.items()):

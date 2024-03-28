@@ -12,15 +12,146 @@ since they are meant to represent the "common default behavior" people need in t
 import copy
 import os
 import sys
+import functools
 
 import torch
+try:
+    from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+    from torch.distributed.fsdp import MixedPrecision, ShardingStrategy
+    from torch.distributed.fsdp.wrap import size_based_auto_wrap_policy, transformer_auto_wrap_policy, ModuleWrapPolicy
+except ImportError as e:
+    print(e, "just skip this")
 
 from ape.checkpoint import DetectionCheckpointer
 from detectron2.config import instantiate
+from detectron2.utils import comm
+
+from transformers.trainer_pt_utils import get_module_class_from_name
 
 __all__ = [
+    "create_fsdp_model",
     "DefaultPredictor",
 ]
+
+
+def create_fsdp_model(model, *, fp16_compression=False, **kwargs):
+    """
+    Create a DistributedDataParallel model if there are >1 processes.
+
+    Args:
+        model: a torch.nn.Module
+        fp16_compression: add fp16 compression hooks to the ddp object.
+            See more at https://pytorch.org/docs/stable/ddp_comm_hooks.html#torch.distributed.algorithms.ddp_comm_hooks.default_hooks.fp16_compress_hook
+        kwargs: other arguments of :module:`torch.nn.parallel.DistributedDataParallel`.
+    """  # noqa
+
+    sharding_strategy_dict = {
+        "NO_SHARD": ShardingStrategy.NO_SHARD,
+        "SHARD_GRAD_OP": ShardingStrategy.SHARD_GRAD_OP,
+        "FULL_SHARD": ShardingStrategy.FULL_SHARD,
+    }
+
+    dtype_dict = {
+        "fp32": torch.float32,
+        "fp16": torch.float16,
+        "bf16": torch.bfloat16,
+    }
+
+    auto_wrap_policy = None
+    module_name_to_wrap = kwargs.pop("module_name_to_wrap", None)
+    if module_name_to_wrap is not None:
+        module_cls_to_wrap = set()
+        for module_name in module_name_to_wrap:
+            module_cls = get_module_class_from_name(model, module_name)
+            if module_cls is None:
+                raise Exception("Could not find the layer class to wrap in the model.")
+            else:
+                module_cls_to_wrap.add(module_cls)
+
+        # print("module_cls_to_wrap", module_cls_to_wrap)
+        # auto_wrap_policy = functools.partial(
+        #     transformer_auto_wrap_policy,
+        #     # Transformer layer class to wrap
+        #     transformer_layer_cls=module_cls_to_wrap,
+        # )
+        auto_wrap_policy = ModuleWrapPolicy(module_cls_to_wrap)
+    else:
+        # auto_wrap_policy = functools.partial(
+        #     size_based_auto_wrap_policy, min_num_params=int(1e5)
+        # )
+        auto_wrap_policy = size_based_auto_wrap_policy
+
+    if comm.get_world_size() == 1:
+        return model
+    if "device_id" not in kwargs:
+        kwargs["device_id"] = comm.get_local_rank()
+
+    param_dtype = kwargs.pop("param_dtype", None)
+    reduce_dtype = kwargs.pop("reduce_dtype", None)
+    buffer_dtype = kwargs.pop("buffer_dtype", None)
+
+    if param_dtype is not None:
+        param_dtype = getattr(torch, param_dtype)
+    if reduce_dtype is not None:
+        reduce_dtype = getattr(torch, reduce_dtype)
+    if buffer_dtype is not None:
+        buffer_dtype = getattr(torch, buffer_dtype)
+
+    # from ape.layers import MultiScaleDeformableAttention
+    mp_policy = MixedPrecision(
+        param_dtype=param_dtype,
+        # Gradient communication precision.
+        reduce_dtype=reduce_dtype,
+        # Buffer precision.
+        buffer_dtype=buffer_dtype,
+        cast_forward_inputs=True,
+         # _module_classes_to_ignore=(MultiScaleDeformableAttention,),
+    )
+
+    fsdp = FSDP(
+        model,
+        auto_wrap_policy=auto_wrap_policy,
+        mixed_precision=mp_policy,
+        **kwargs,
+    )
+    return fsdp
+
+    model.model_vision.model_language = FSDP(
+        model.model_vision.model_language,
+        # auto_wrap_policy=auto_wrap_policy,
+        sharding_strategy=ShardingStrategy.NO_SHARD,
+        mixed_precision=mp_policy,
+        **kwargs,
+    )
+    model.model_vision.backbone = FSDP(
+        model.model_vision.backbone,
+        auto_wrap_policy=auto_wrap_policy,
+        mixed_precision=mp_policy,
+        **kwargs,
+    )
+    model.model_vision.transfomer = FSDP(
+        model.model_vision.transformer,
+        auto_wrap_policy=auto_wrap_policy,
+        mixed_precision=mp_policy,
+        **kwargs,
+    )
+
+    # auto_wrap_policy = functools.partial(
+    #     size_based_auto_wrap_policy, min_num_params=int(1e5)
+    # )
+    fsdp = FSDP(
+        model,
+        # auto_wrap_policy=size_based_auto_wrap_policy,
+        sharding_strategy=ShardingStrategy.NO_SHARD,
+        mixed_precision=mp_policy,
+        **kwargs,
+    )
+
+    # if fp16_compression:
+    #     from torch.distributed.algorithms.ddp_comm_hooks import default as comm_hooks
+
+    #     ddp.register_comm_hook(state=None, hook=comm_hooks.fp16_compress_hook)
+    return fsdp
 
 
 class DefaultPredictor:

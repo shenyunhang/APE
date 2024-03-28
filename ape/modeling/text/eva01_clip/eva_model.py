@@ -16,9 +16,19 @@ from torch import nn
 
 from .vit_model import VisionTransformer
 
+class LayerNorm(nn.LayerNorm):
+    """Subclass torch's LayerNorm (with cast back to input dtype)."""
+
+    def forward(self, x: torch.Tensor):
+        orig_type = x.dtype
+        x = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+        return x.to(orig_type)
+
 try:
     from apex.normalization import FusedLayerNorm
 except:
+    FusedLayerNorm = LayerNorm
+    print("apex.normalization.FusedLayerNorm not found, will use pytorch implementations")
     pass
 
 

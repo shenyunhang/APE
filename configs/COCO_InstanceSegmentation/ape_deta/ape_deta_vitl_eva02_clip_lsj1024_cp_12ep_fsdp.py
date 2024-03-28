@@ -72,6 +72,19 @@ train.init_checkpoint = (
 
 train.amp.enabled = True
 train.ddp.fp16_compression = True
+train.fsdp = dict(
+    cpu_offload=False,
+    use_orig_params=True,
+    sync_module_states=True,
+    module_name_to_wrap=["Block",],
+    # module_name_to_wrap=["Block", "BaseTransformerLayer"],
+    param_dtype="float32",
+    reduce_dtype="float32",
+    buffer_dtype="float32",
+    # param_dtype="float16",
+    # reduce_dtype="float16",
+    # buffer_dtype="float16",
+)
 
 lr_multiplier = get_config_detrex("common/coco_schedule.py").lr_multiplier_12ep
 lr_multiplier.scheduler.milestones = [75000, 90000]
@@ -91,6 +104,11 @@ train.output_dir = "output/" + __file__[:-3]
 model.model_language = L(EVA02CLIP)(
     clip_model="EVA02-CLIP-bigE-14-plus",
     cache_dir="models/QuanSun/EVA-CLIP/EVA02_CLIP_E_psz14_plus_s9B.pt",
-    dtype="float16",
+    # dtype="float16",
 )
 model.model_vision.embed_dim_language = 1024
+
+from ape.data.build import build_detection_test_loader
+dataloader.test.update(
+    _target_=build_detection_test_loader,
+)

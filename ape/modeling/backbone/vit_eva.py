@@ -630,6 +630,9 @@ def get_vit_lr_decay_rate(name, lr_decay_rate=1.0, num_layers=12):
     Returns:
         lr decay rate for the given parameter.
     """
+    if name.startswith("_fsdp_wrapped_module."):
+        name = name[len("_fsdp_wrapped_module.") :]
+
     if name.startswith("model_vision."):
         name = name[len("model_vision."):]
 

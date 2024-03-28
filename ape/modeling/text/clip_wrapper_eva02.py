@@ -12,6 +12,7 @@ class EVA02CLIP(nn.Module):
         cache_dir="EVA02_CLIP_B_psz16_s8B.pt",
         dtype="float32",
         max_batch_size=2560,
+        freeze=True,
     ):
         super().__init__()
         self.net, _, _ = create_model_and_transforms(
@@ -27,10 +28,11 @@ class EVA02CLIP(nn.Module):
             self.dtype = torch.float32
 
         del self.net.visual
-        self.net.eval()
-        for name, param in self.net.named_parameters():
-            param.requires_grad = False
-            param.data = param.data.to(self.dtype)
+        if freeze:
+            self.net.eval()
+            for name, param in self.net.named_parameters():
+                param.requires_grad = False
+                param.data = param.data.to(self.dtype)
 
         self.register_buffer("unused_tensor", torch.zeros(1), False)
 

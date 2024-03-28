@@ -7,7 +7,7 @@ from ape.modeling.backbone.vit import get_vit_lr_decay_rate
 
 from ape.modeling.text import EVA02CLIP
 
-from ...common.backbone.vitl_eva02_clip import backbone
+from ...common.backbone.vite_eva02_clip_1024 import backbone
 from ...common.data.coco_instance_lsj1024_cp import dataloader
 from .models.ape_deta_r50 import model
 
@@ -41,7 +41,7 @@ optimizer = get_config_detrex("common/optim.py").AdamW
 optimizer.params.lr_factor_func = (
     lambda module_name: 0.1
     if "reference_points" in module_name or "sampling_offsets" in module_name
-    else get_vit_lr_decay_rate(module_name, lr_decay_rate=0.8, num_layers=24)
+    else get_vit_lr_decay_rate(module_name, lr_decay_rate=0.8, num_layers=64)
     if "backbone.net" in module_name
     else 1
 )
@@ -67,11 +67,24 @@ train.clip_grad.params.norm_type = 2
 train.device = "cuda"
 
 train.init_checkpoint = (
-    "models/QuanSun/EVA-CLIP/EVA02_CLIP_L_336_psz14to16_s6B.pt?matching_heuristics=True"
+    "models/QuanSun/EVA-CLIP/EVA02_CLIP_E_psz14to16_plus_s9B.pt?matching_heuristics=True"
 )
 
 train.amp.enabled = True
 train.ddp.fp16_compression = True
+train.fsdp = dict(
+    cpu_offload=False,
+    use_orig_params=True,
+    sync_module_states=True,
+    module_name_to_wrap=["Block",],
+    # module_name_to_wrap=["Block", "BaseTransformerLayer"],
+    param_dtype="float32",
+    reduce_dtype="float32",
+    buffer_dtype="float32",
+    # param_dtype="float16",
+    # reduce_dtype="float16",
+    # buffer_dtype="float16",
+)
 
 lr_multiplier = get_config_detrex("common/coco_schedule.py").lr_multiplier_12ep
 lr_multiplier.scheduler.milestones = [75000, 90000]
@@ -91,6 +104,11 @@ train.output_dir = "output/" + __file__[:-3]
 model.model_language = L(EVA02CLIP)(
     clip_model="EVA02-CLIP-bigE-14-plus",
     cache_dir="models/QuanSun/EVA-CLIP/EVA02_CLIP_E_psz14_plus_s9B.pt",
-    dtype="float16",
+    # dtype="float16",
 )
 model.model_vision.embed_dim_language = 1024
+
+from ape.data.build import build_detection_test_loader
+dataloader.test.update(
+    _target_=build_detection_test_loader,
+)

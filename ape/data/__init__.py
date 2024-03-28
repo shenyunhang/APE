@@ -11,6 +11,7 @@ from .build_multi_dataset_copypaste import (
     build_detection_train_loader_multi_dataset_copypaste,
     get_detection_dataset_dicts_multi_dataset_copypaste,
 )
+from .build import build_detection_test_loader
 from .dataset_mapper import DatasetMapper_ape
 from .dataset_mapper_copypaste import DatasetMapper_copypaste
 from .dataset_mapper_detr_instance import DatasetMapper_detr_instance

@@ -2,7 +2,7 @@ from detectron2.config import LazyCall as L
 from detectron2.layers import ShapeSpec
 
 from detectron2.model_zoo import get_config as get_config_d2
-from detrex.config import get_config
+from detrex.config import get_config as get_config_detrex
 from ape.modeling.backbone.vit import get_vit_lr_decay_rate
 from ape.modeling.text import EVA01CLIP
 
@@ -29,7 +29,7 @@ model.model_vision.input_shapes = {
     "p6": ShapeSpec(channels=256),
 }
 
-optimizer = get_config("common/optim.py").AdamW
+optimizer = get_config_detrex("common/optim.py").AdamW
 optimizer.params.lr_factor_func = (
     lambda module_name: 0.1
     if "reference_points" in module_name or "sampling_offsets" in module_name
@@ -44,7 +44,7 @@ optimizer.lr = 2e-4
 optimizer.betas = (0.9, 0.999)
 optimizer.weight_decay = 1e-4
 
-train = get_config("common/train.py").train
+train = get_config_detrex("common/train.py").train
 train.max_iter = 90000
 train.eval_period = 5000
 train.log_period = 20
@@ -65,7 +65,7 @@ train.init_checkpoint = (
 train.amp.enabled = True
 train.ddp.fp16_compression = True
 
-lr_multiplier = get_config("common/coco_schedule.py").lr_multiplier_12ep
+lr_multiplier = get_config_detrex("common/coco_schedule.py").lr_multiplier_12ep
 lr_multiplier.scheduler.milestones = [75000, 90000]
 lr_multiplier.warmup_length = 1000 / train.max_iter
 

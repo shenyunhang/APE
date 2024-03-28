@@ -18,17 +18,19 @@ import sys
 import time
 from collections import abc
 from contextlib import nullcontext
-from datetime import timedelta
 
 import torch
 from torch.nn.parallel import DataParallel, DistributedDataParallel
+from torch.distributed.fsdp import FullyShardedDataParallel
 
 import ape
 from ape.checkpoint import DetectionCheckpointer
+from ape.checkpoint import FSDPDetectionCheckpointer
 from ape.engine import SimpleTrainer
 from ape.evaluation import inference_on_dataset
+from ape.engine.defaults import create_fsdp_model
 from detectron2.config import LazyConfig, instantiate
-from detectron2.engine import default_argument_parser  # SimpleTrainer,
+from detectron2.engine import default_argument_parser
 from detectron2.engine import default_setup, hooks, launch
 from detectron2.engine.defaults import create_ddp_model
 from detectron2.evaluation import print_csv_format
@@ -43,6 +45,8 @@ from detectron2.utils.file_io import PathManager
 from detectron2.utils.logger import setup_logger
 from detrex.modeling import ema
 from detrex.utils import WandbWriter
+
+from accelerate import Accelerator
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
@@ -60,6 +64,7 @@ class Trainer(SimpleTrainer):
         dataloader,
         optimizer,
         amp=False,
+        amp_dtype=None,
         clip_grad_params=None,
         grad_scaler=None,
         iter_size=1,
@@ -79,9 +84,14 @@ class Trainer(SimpleTrainer):
                 from torch.cuda.amp import GradScaler
 
                 grad_scaler = GradScaler()
+            if isinstance(model, FullyShardedDataParallel):
+                from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
+
+                grad_scaler = ShardedGradScaler()
         self.grad_scaler = grad_scaler
 
         self.amp = amp
+        self.amp_dtype = getattr(torch, amp_dtype)
 
         self.clip_grad_params = clip_grad_params
 
@@ -157,7 +167,7 @@ class Trainer(SimpleTrainer):
         """
         If you want to do something with the losses, you can wrap the model.
         """
-        with autocast(enabled=self.amp):
+        with autocast(enabled=self.amp, dtype=self.amp_dtype):
             loss_dict = self.model(data)
             if isinstance(loss_dict, torch.Tensor):
                 losses = loss_dict
@@ -173,6 +183,7 @@ class Trainer(SimpleTrainer):
 
         if self.amp:
             self.grad_scaler.scale(losses).backward()
+            torch.cuda.synchronize()
             if self.clip_grad_params is not None:
                 self.grad_scaler.unscale_(self.optimizer)
                 self.clip_grads(self.model.parameters())
@@ -180,6 +191,7 @@ class Trainer(SimpleTrainer):
             self.grad_scaler.update()
         else:
             losses.backward()
+            torch.cuda.synchronize()
             if self.clip_grad_params is not None:
                 self.clip_grads(self.model.parameters())
             self.optimizer.step()
@@ -241,7 +253,7 @@ class Trainer(SimpleTrainer):
         If you want to do something with the losses, you can wrap the model.
         """
         with sync_context():
-            with autocast(enabled=self.amp):
+            with autocast(enabled=self.amp, dtype=self.amp_dtype):
                 loss_dict = self.model(data)
 
                 if isinstance(loss_dict, torch.Tensor):
@@ -338,7 +350,7 @@ class Trainer(SimpleTrainer):
             If you want to do something with the losses, you can wrap the model.
             """
             with sync_context():
-                with autocast(enabled=self.amp):
+                with autocast(enabled=self.amp, dtype=self.amp_dtype):
                     loss_dict = self.model(data)
 
                     if isinstance(loss_dict, torch.Tensor):
@@ -383,6 +395,7 @@ class Trainer(SimpleTrainer):
             self.optimizer.step()
 
     def clip_grads(self, params):
+        return self.model.clip_grad_norm_(**self.clip_grad_params)
         params = list(filter(lambda p: p.requires_grad and p.grad is not None, params))
         if len(params) > 0:
             return torch.nn.utils.clip_grad_norm_(
@@ -421,6 +434,24 @@ class Trainer(SimpleTrainer):
 
 
 def do_test(cfg, model, eval_only=False):
+
+    if isinstance(model, FullyShardedDataParallel) and False:
+        accelerator = Accelerator()
+        model = accelerator.unwrap_model(model, keep_fp32_wrapper=False)
+
+    if isinstance(model, FullyShardedDataParallel) and False:
+        model = instantiate(cfg.model)
+        logger = logging.getLogger("ape")
+        logger.info("Model:\n{}".format(model))
+        model.to(cfg.train.device)
+        model = create_ddp_model(model)
+
+        checkpointer = FSDPDetectionCheckpointer(
+            model,
+            cfg.train.output_dir,
+        )
+        checkpointer.resume_or_load(cfg.train.init_checkpoint, resume=True)
+
     logger = logging.getLogger("ape")
     if "evaluator" in cfg.dataloader:
         if isinstance(model, DistributedDataParallel):
@@ -535,9 +566,7 @@ def do_train(args, cfg):
     logger.info("Model:\n{}".format(model))
     model.to(cfg.train.device)
 
-    cfg.optimizer.params.model = model
-    optim = instantiate(cfg.optimizer)
-
+    # build training loader
     if "wait_group" in cfg.dataloader:
         wait = comm.get_local_rank() % cfg.dataloader.wait_group * cfg.dataloader.wait_time
         logger.info("rank {} sleep {}".format(comm.get_local_rank(), wait))
@@ -547,22 +576,30 @@ def do_train(args, cfg):
     else:
         train_loader = instantiate(cfg.dataloader.train)
 
-    model = create_ddp_model(model, **cfg.train.ddp)
+    # create fsdp model
+    model = create_fsdp_model(model, **cfg.train.fsdp)
+    logger.info("Model:\n{}".format(model))
 
+    # build model ema
     ema.may_build_model_ema(cfg, model)
+
+    # instantiate optimizer
+    cfg.optimizer.params.model = model
+    optim = instantiate(cfg.optimizer)
 
     trainer = Trainer(
         model=model,
         dataloader=train_loader,
         optimizer=optim,
         amp=cfg.train.amp.enabled,
+        amp_dtype=cfg.train.fsdp.param_dtype,
         clip_grad_params=cfg.train.clip_grad.params if cfg.train.clip_grad.enabled else None,
         iter_size=cfg.train.iter_size if "iter_size" in cfg.train else 1,
         iter_loop=cfg.train.iter_loop if "iter_loop" in cfg.train else True,
         dataset_ratio=cfg.train.dataset_ratio if "dataset_ratio" in cfg.train else None,
     )
 
-    checkpointer = DetectionCheckpointer(
+    checkpointer = FSDPDetectionCheckpointer(
         model,
         cfg.train.output_dir,
         trainer=trainer,
@@ -586,9 +623,10 @@ def do_train(args, cfg):
             hooks.IterationTimer(),
             ema.EMAHook(cfg, model) if cfg.train.model_ema.enabled else None,
             hooks.LRScheduler(scheduler=instantiate(cfg.lr_multiplier)),
-            hooks.PeriodicCheckpointer(checkpointer, **cfg.train.checkpointer)
-            if comm.is_main_process()
-            else None,
+            # hooks.PeriodicCheckpointer(checkpointer, **cfg.train.checkpointer)
+            # if comm.is_main_process()
+            # else None,
+            hooks.PeriodicCheckpointer(checkpointer, **cfg.train.checkpointer),
             hooks.EvalHook(cfg.train.eval_period, lambda: do_test(cfg, model)),
             hooks.PeriodicWriter(
                 writers,
@@ -662,5 +700,4 @@ if __name__ == "__main__":
         machine_rank=args.machine_rank,
         dist_url=args.dist_url,
         args=(args,),
-        timeout=timedelta(minutes=120),
     )

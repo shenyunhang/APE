@@ -23,12 +23,22 @@ from .utils_eva02 import (
 try:
     import xformers.ops as xops
 except:
-    pass
+    xops = None
+    # print("xformers not found, will use pytorch implementations")
+
+class LayerNorm(nn.LayerNorm):
+    """Subclass torch's LayerNorm (with cast back to input dtype)."""
+
+    def forward(self, x: torch.Tensor):
+        orig_type = x.dtype
+        x = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+        return x.to(orig_type)
 
 try:
     from apex.normalization import FusedLayerNorm
 except:
-    pass
+    FusedLayerNorm = LayerNorm
+    print("apex.normalization.FusedLayerNorm not found, will use pytorch implementations")
 
 
 logger = logging.getLogger(__name__)
@@ -246,7 +256,15 @@ class Attention(nn.Module):
             q = self.rope(q).type_as(v)
             k = self.rope(k).type_as(v)
 
-        if self.xattn and not (torch.jit.is_scripting() or torch.jit.is_tracing()):
+        if True:
+            with torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=True, enable_mem_efficient=True):
+                x = F.scaled_dot_product_attention(q, k, v, dropout_p=self.xattn_drop, scale=self.scale)
+            x = x.permute(0, 2, 1, 3)  # B, num_heads, N, C -> B, N, num_heads, C
+            x = x.reshape(B, N, -1)
+            x = self.inner_attn_ln(x)
+            x = self.proj(x)
+            x = self.proj_drop(x)
+        elif self.xattn and not (torch.jit.is_scripting() or torch.jit.is_tracing()):
             q = q.permute(0, 2, 1, 3)  # B, num_heads, N, C -> B, N, num_heads, C
             k = k.permute(0, 2, 1, 3)
             v = v.permute(0, 2, 1, 3)
@@ -913,6 +931,9 @@ def get_vit_lr_decay_rate(name, lr_decay_rate=1.0, num_layers=12):
     Returns:
         lr decay rate for the given parameter.
     """
+    if name.startswith("_fsdp_wrapped_module."):
+        name = name[len("_fsdp_wrapped_module.") :]
+
     if name.startswith("model_vision."):
         name = name[len("model_vision.") :]
 
@@ -923,9 +944,5 @@ def get_vit_lr_decay_rate(name, lr_decay_rate=1.0, num_layers=12):
         elif ".blocks." in name and ".residual." not in name:
             layer_id = int(name[name.find(".blocks.") :].split(".")[2]) + 1
 
-    logger.info(
-        "get_vit_lr_decay_rate: name={} num_layers={} layer_id={} lr_decay_rate={}".format(
-            name, num_layers, layer_id, lr_decay_rate ** (num_layers + 1 - layer_id)
-        )
-    )
+    logger.info("get_vit_lr_decay_rate: name={} num_layers={} layer_id={} lr_decay_rate={}".format(name, num_layers, layer_id, lr_decay_rate ** (num_layers + 1 - layer_id)))
     return lr_decay_rate ** (num_layers + 1 - layer_id)

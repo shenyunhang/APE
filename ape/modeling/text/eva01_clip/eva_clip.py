@@ -5,7 +5,7 @@ import pathlib
 import re
 from copy import deepcopy
 from pathlib import Path
-from tkinter import E
+# from tkinter import E
 from typing import Optional, Tuple, Any, Union, List
 
 import torch

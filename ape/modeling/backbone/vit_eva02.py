@@ -1,6 +1,7 @@
 import logging
 import math
 from functools import partial
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import fvcore.nn.weight_init as weight_init
 import torch
@@ -23,13 +24,14 @@ from .utils_eva02 import (
 try:
     import xformers.ops as xops
 except:
-    pass
+    xops = None
 
 try:
     from apex.normalization import FusedLayerNorm
 except:
     pass
 
+has_sdp_kernel = hasattr(torch.backends.cuda, "sdp_kernel")
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,141 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["ViT", "SimpleFeaturePyramid", "get_vit_lr_decay_rate"]
 
+
+class xops_SwiGLU(nn.Module):
+    """
+    A Module that encapsulates the call to :attr:`xformers.ops.swiglu`,
+    and holds the weights for the 3 linear layers
+    """
+
+    def __init__(
+        self,
+        in_features: int,
+        hidden_features: int,
+        out_features: Optional[int] = None,
+        bias: bool = True,
+        *,
+        _pack_weights: bool = True,
+    ) -> None:
+        """Create a SwiGLU module
+
+        Args:
+            in_features (int): Number of features of the input
+            hidden_features (int): Number of hidden features
+            out_features (Optional[int], optional): Number of features of the input. Defaults to None.
+            bias (bool, optional): Whether linear layers also include a bias. Defaults to True.
+        """
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+
+        self.w12: Optional[nn.Linear]
+        if _pack_weights:
+            self.w12 = nn.Linear(in_features, 2 * hidden_features, bias=bias)
+        else:
+            self.w12 = None
+            self.w1 = nn.Linear(in_features, hidden_features, bias=bias)
+            self.w2 = nn.Linear(in_features, hidden_features, bias=bias)
+        self.w3 = nn.Linear(hidden_features, out_features, bias=bias)
+
+        self.hidden_features = hidden_features
+        self.out_features = out_features
+        self.in_features = in_features
+        self.op: Optional[SwiGLUOp] = None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Computes :attr:`swiglu` with the module's weights
+
+        Args:
+            x (torch.Tensor): A Tensor of shape ``[..., in_features]``
+
+        Returns:
+            torch.Tensor: A Tensor of shape ``[..., out_features]``
+        """
+
+        w1, b1, w2, b2, w3, b3 = self._ordered_params()
+        x1 = F.linear(x, w1, b1)
+        x2 = F.linear(x, w2, b2)
+        hidden = F.silu(x1) * x2
+        return F.linear(hidden, w3, b3)
+
+        if self.w12 is not None:
+            if self.op is not None:
+                assert (
+                    self.op.PACKED_WEIGHTS
+                ), "_pack_weights and self.op.PACKED_WEIGHTS should match"
+                return swiglu_packed(x, *self._packed_ordered_params(), op=self.op)
+
+        return swiglu(x, *self._ordered_params(), op=self.op)
+
+    def _ordered_params(
+        self,
+    ) -> Tuple[
+        torch.Tensor,
+        Optional[torch.Tensor],
+        torch.Tensor,
+        Optional[torch.Tensor],
+        torch.Tensor,
+        Optional[torch.Tensor],
+    ]:
+        """Used for testing - returns ordered arguments for operators"""
+        b1: Optional[torch.Tensor]
+        b2: Optional[torch.Tensor]
+        if self.w12 is not None:
+            w1w2 = self.w12.weight
+            b1b2 = self.w12.bias
+            # w1, w2 = xops.unbind(
+            #     w1w2.view([2, w1w2.shape[0] // 2, w1w2.shape[1]]),
+            #     dim=0,
+            # )
+            w1, w2 = torch.unbind(
+                w1w2.view([2, w1w2.shape[0] // 2, w1w2.shape[1]]),
+                dim=0,
+            )
+            if b1b2 is not None:
+                # b1, b2 = xops.unbind(b1b2.view([2, b1b2.shape[0] // 2]), dim=0)
+                b1, b2 = torch.unbind(b1b2.view([2, b1b2.shape[0] // 2]), dim=0)
+            else:
+                b1, b2 = None, None
+        else:
+            w1, w2 = self.w1.weight, self.w2.weight
+            b1, b2 = self.w1.bias, self.w2.bias
+
+        return (
+            w1,
+            b1,
+            w2,
+            b2,
+            self.w3.weight,
+            self.w3.bias,
+        )
+
+    def _packed_ordered_params(
+        self,
+    ) -> Tuple[
+        torch.Tensor,
+        Optional[torch.Tensor],
+        torch.Tensor,
+        Optional[torch.Tensor],
+    ]:
+        assert self.w12 is not None, "Packed weights are only available when using w12"
+
+        """Used for testing - returns ordered arguments for packed operators"""
+        w1w2 = self.w12.weight
+        b1b2_param = self.w12.bias
+
+        w1w2 = w1w2.view([2, w1w2.shape[0] // 2, w1w2.shape[1]])
+
+        b1b2: Optional[torch.Tensor] = None
+        if b1b2_param is not None:
+            b1b2 = b1b2_param.view([2, b1b2_param.shape[0] // 2])
+
+        return (
+            w1w2,
+            b1b2,
+            self.w3.weight,
+            self.w3.bias,
+        )
 
 
 class SwiGLU(nn.Module):
@@ -76,6 +213,7 @@ class Attention(nn.Module):
             attn_head_dim=None, 
             rope=None,
             xattn=True,
+            subln=False,
         ):
         super().__init__()
         self.num_heads = num_heads
@@ -85,9 +223,13 @@ class Attention(nn.Module):
         all_head_dim = head_dim * self.num_heads
         self.scale = qk_scale or head_dim ** -0.5
 
-        self.q_proj = nn.Linear(dim, all_head_dim, bias=False)
-        self.k_proj = nn.Linear(dim, all_head_dim, bias=False)
-        self.v_proj = nn.Linear(dim, all_head_dim, bias=False)
+        self.subln = subln
+        if self.subln:
+            self.q_proj = nn.Linear(dim, all_head_dim, bias=False)
+            self.k_proj = nn.Linear(dim, all_head_dim, bias=False)
+            self.v_proj = nn.Linear(dim, all_head_dim, bias=False)
+        else:
+            self.qkv = nn.Linear(dim, all_head_dim * 3, bias=False)
 
         if qkv_bias:
             self.q_bias = nn.Parameter(torch.zeros(all_head_dim))
@@ -105,19 +247,32 @@ class Attention(nn.Module):
         x = x.view(B, -1, C)
         N = H * W
 
-        q = F.linear(input=x, weight=self.q_proj.weight, bias=self.q_bias)
-        k = F.linear(input=x, weight=self.k_proj.weight, bias=None)
-        v = F.linear(input=x, weight=self.v_proj.weight, bias=self.v_bias)
+        if self.subln: 
+            q = F.linear(input=x, weight=self.q_proj.weight, bias=self.q_bias)
+            k = F.linear(input=x, weight=self.k_proj.weight, bias=None)
+            v = F.linear(input=x, weight=self.v_proj.weight, bias=self.v_bias)
 
-        q = q.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3)     # B, num_heads, N, C
-        k = k.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3)  
-        v = v.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3) 
+            q = q.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3)     # B, num_heads, N, C
+            k = k.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3)  
+            v = v.reshape(B, N, self.num_heads, -1).permute(0, 2, 1, 3) 
+        else: 
+            qkv_bias = None
+            if self.q_bias is not None:
+                qkv_bias = torch.cat((self.q_bias, torch.zeros_like(self.v_bias, requires_grad=False), self.v_bias))
+            qkv = F.linear(input=x, weight=self.qkv.weight, bias=qkv_bias)
+            qkv = qkv.reshape(B, N, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)   # 3, B, num_heads, N, C
+            q, k, v = qkv[0], qkv[1], qkv[2]   
 
         ## rope
         q = self.rope(q).type_as(v)
         k = self.rope(k).type_as(v)
 
-        if self.xattn and not (torch.jit.is_scripting() or torch.jit.is_tracing()):
+        if has_sdp_kernel:
+            with torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=True, enable_mem_efficient=True):
+                x = F.scaled_dot_product_attention(q, k, v)
+            x = x.permute(0, 2, 1, 3)  # B, num_heads, N, C -> B, N, num_heads, C
+            x = x.reshape(B, N, -1)
+        elif self.xattn and not (torch.jit.is_scripting() or torch.jit.is_tracing()):
             q = q.permute(0, 2, 1, 3)   # B, num_heads, N, C -> B, N, num_heads, C
             k = k.permute(0, 2, 1, 3)
             v = v.permute(0, 2, 1, 3)
@@ -212,6 +367,9 @@ class Block(nn.Module):
         use_residual_block=False,
         rope=None,
         xattn=True,
+        subln=False,
+        swiglu=False,
+        naiveswiglu=False,
     ):
         """
         Args:
@@ -238,18 +396,31 @@ class Block(nn.Module):
             qkv_bias=qkv_bias,
             rope=rope,
             xattn=xattn,
+            subln=subln,
         )
 
         from timm.models.layers import DropPath
 
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(dim)
-        self.mlp = SwiGLU(
+        if swiglu:
+            # self.mlp = xops.SwiGLU(
+            #     in_features=dim, 
+            #     hidden_features=int(dim * mlp_ratio), 
+            # ) # hidden_features: 2/3
+            self.mlp = xops_SwiGLU(
+                in_features=dim, 
+                hidden_features=int(dim * mlp_ratio), 
+            ) # hidden_features: 2/3
+        elif naiveswiglu:
+            self.mlp = SwiGLU(
                 in_features=dim, 
                 hidden_features=int(dim * mlp_ratio), 
                 subln=True,
                 norm_layer=norm_layer,
             )
+        else:
+            assert False
 
         self.window_size = window_size
 
@@ -320,6 +491,9 @@ class ViT(Backbone):
         pretrain_use_cls_token=True,
         out_feature="last_feat",
         xattn=True,
+        subln=False,
+        swiglu=False,
+        naiveswiglu=False,
         frozen_stages=-1,
     ):
         """
@@ -394,7 +568,10 @@ class ViT(Backbone):
                 window_size=window_size if i in window_block_indexes else 0,
                 use_residual_block=i in residual_block_indexes,
                 rope=self.rope_win if i in window_block_indexes else self.rope_glb,
-                xattn=xattn
+                xattn=xattn,
+                subln=subln,
+                swiglu=swiglu,
+                naiveswiglu=naiveswiglu,
             )
             if use_act_checkpoint and i > frozen_stages - 1:
                 # TODO: use torch.utils.checkpoint
@@ -611,6 +788,9 @@ def get_vit_lr_decay_rate(name, lr_decay_rate=1.0, num_layers=12):
     Returns:
         lr decay rate for the given parameter.
     """
+    if name.startswith("_fsdp_wrapped_module."):
+        name = name[len("_fsdp_wrapped_module.") :]
+
     if name.startswith("model_vision."):
         name = name[len("model_vision."):]
 

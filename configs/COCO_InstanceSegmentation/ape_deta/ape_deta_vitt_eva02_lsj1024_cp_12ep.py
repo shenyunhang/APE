@@ -7,7 +7,7 @@ from ape.modeling.backbone.vit import get_vit_lr_decay_rate
 
 from ape.modeling.text import EVA02CLIP
 
-from ...common.backbone.vitl_eva02_clip import backbone
+from ...common.backbone.vitt_eva02 import backbone
 from ...common.data.coco_instance_lsj1024_cp import dataloader
 from .models.ape_deta_r50 import model
 
@@ -67,7 +67,7 @@ train.clip_grad.params.norm_type = 2
 train.device = "cuda"
 
 train.init_checkpoint = (
-    "models/QuanSun/EVA-CLIP/EVA02_CLIP_L_336_psz14to16_s6B.pt?matching_heuristics=True"
+    "models/Yuxin-CV/EVA-02/eva02/pt/eva02_Ti_pt_in21k_p14to16.pt?matching_heuristics=True"
 )
 
 train.amp.enabled = True
