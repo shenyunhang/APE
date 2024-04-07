@@ -325,7 +325,7 @@ git clone https://huggingface.co/shenyunhang/APE
       <th>4</th>
       <td>APE-Ti</td>
       <td><a href="https://huggingface.co/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl_20240203_230000/model_final.pth">HF link</a> 
-      <td><a href="https://github.com/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl">link</a></td>
+      <td><a href="https://github.com/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl.py">link</a></td>
     </tr>
   </tbody>
 </table>
