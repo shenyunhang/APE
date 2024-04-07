@@ -2,6 +2,7 @@ import math
 
 import torch
 import torch.nn as nn
+import torch.utils.checkpoint as checkpoint
 
 from ape.layers import MultiScaleDeformableAttention
 from detrex.layers import (
@@ -59,12 +60,7 @@ class DeformableDetrTransformerEncoder(TransformerLayerSequence):
         else:
             self.post_norm_layer = None
 
-        if use_act_checkpoint:
-            from fairscale.nn.checkpoint import checkpoint_wrapper
-
-            for i, layer in enumerate(self.layers):
-                layer = checkpoint_wrapper(layer)
-                self.layers[i] = layer
+        self.use_checkpoint = use_act_checkpoint
 
     def forward(
         self,
@@ -80,16 +76,30 @@ class DeformableDetrTransformerEncoder(TransformerLayerSequence):
     ):
 
         for layer in self.layers:
-            query = layer(
-                query,
-                key,
-                value,
-                query_pos=query_pos,
-                attn_masks=attn_masks,
-                query_key_padding_mask=query_key_padding_mask,
-                key_padding_mask=key_padding_mask,
-                **kwargs,
-            )
+            if self.use_checkpoint and self.training:
+                query = checkpoint.checkpoint(
+                    layer,
+                    query,
+                    key,
+                    value,
+                    query_pos=query_pos,
+                    attn_masks=attn_masks,
+                    query_key_padding_mask=query_key_padding_mask,
+                    key_padding_mask=key_padding_mask,
+                    use_reentrant=False,
+                    **kwargs,
+                )
+            else:
+                query = layer(
+                    query,
+                    key,
+                    value,
+                    query_pos=query_pos,
+                    attn_masks=attn_masks,
+                    query_key_padding_mask=query_key_padding_mask,
+                    key_padding_mask=key_padding_mask,
+                    **kwargs,
+                )
 
         if self.post_norm_layer is not None:
             query = self.post_norm_layer(query)
@@ -144,12 +154,7 @@ class DeformableDetrTransformerDecoder(TransformerLayerSequence):
         self.bbox_embed = None
         self.class_embed = None
 
-        if use_act_checkpoint:
-            from fairscale.nn.checkpoint import checkpoint_wrapper
-
-            for i, layer in enumerate(self.layers):
-                layer = checkpoint_wrapper(layer)
-                self.layers[i] = layer
+        self.use_checkpoint = use_act_checkpoint
 
     def forward(
         self,
@@ -179,18 +184,34 @@ class DeformableDetrTransformerDecoder(TransformerLayerSequence):
                 assert reference_points.shape[-1] == 2
                 reference_points_input = reference_points[:, :, None] * valid_ratios[:, None]
 
-            output = layer(
-                output,
-                key,
-                value,
-                query_pos=query_pos,
-                key_pos=key_pos,
-                attn_masks=attn_masks,
-                query_key_padding_mask=query_key_padding_mask,
-                key_padding_mask=key_padding_mask,
-                reference_points=reference_points_input,
-                **kwargs,
-            )
+            if self.use_checkpoint and self.training:
+                output = checkpoint.checkpoint(
+                    layer,
+                    output,
+                    key,
+                    value,
+                    query_pos=query_pos,
+                    key_pos=key_pos,
+                    attn_masks=attn_masks,
+                    query_key_padding_mask=query_key_padding_mask,
+                    key_padding_mask=key_padding_mask,
+                    reference_points=reference_points_input,
+                    use_reentrant=False,
+                    **kwargs,
+                )
+            else:
+                output = layer(
+                    output,
+                    key,
+                    value,
+                    query_pos=query_pos,
+                    key_pos=key_pos,
+                    attn_masks=attn_masks,
+                    query_key_padding_mask=query_key_padding_mask,
+                    key_padding_mask=key_padding_mask,
+                    reference_points=reference_points_input,
+                    **kwargs,
+                )
 
             if self.bbox_embed is not None:
                 tmp = self.bbox_embed[layer_idx](output)

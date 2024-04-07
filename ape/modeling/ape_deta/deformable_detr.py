@@ -76,6 +76,7 @@ class DeformableDETR(nn.Module):
         text_feature_batch_repeat: bool = True,
         text_feature_bank: bool = False,
         text_feature_bank_reset: bool = False,
+        text_feature_bank_random_size: bool = False,
         text_feature_reduce_type: str = "last",
         text_feature_reduce_before_fusion: bool = True,
         expression_cumulative_gt_class: bool = True,
@@ -276,6 +277,7 @@ class DeformableDETR(nn.Module):
 
         self.text_feature_bank = text_feature_bank
         self.text_feature_bank_reset = text_feature_bank_reset
+        self.text_feature_bank_random_size = text_feature_bank_random_size
         if self.text_feature_bank:
             features_phrase_bank = torch.zeros(
                 (

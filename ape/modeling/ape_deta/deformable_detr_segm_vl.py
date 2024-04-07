@@ -1,4 +1,5 @@
 import copy
+import random
 import math
 import os
 import time
@@ -322,6 +323,12 @@ class DeformableDETRSegmVL(DeformableDETR):
                     )
                     features_l = features_l[
                         : max(len(text_list), self.criterion[dataset_id].num_classes)
+                    ]
+
+                if self.text_feature_bank and self.text_feature_bank_random_size:
+                    text_feature_bank_size = random.randint(len(text_list), len(features_l))
+                    features_l = features_l[
+                        : random.randint(len(text_list), len(features_l))
                     ]
 
                 if self.text_feature_batch_repeat:

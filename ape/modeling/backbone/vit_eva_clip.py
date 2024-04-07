@@ -38,7 +38,9 @@ try:
     from apex.normalization import FusedLayerNorm
 except:
     FusedLayerNorm = LayerNorm
-    print("apex.normalization.FusedLayerNorm not found, will use pytorch implementations")
+    # print("apex.normalization.FusedLayerNorm not found, will use pytorch implementations")
+
+has_sdp_kernel = hasattr(torch.backends.cuda, "sdp_kernel")
 
 
 logger = logging.getLogger(__name__)
@@ -256,7 +258,7 @@ class Attention(nn.Module):
             q = self.rope(q).type_as(v)
             k = self.rope(k).type_as(v)
 
-        if True:
+        if has_sdp_kernel:
             with torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=True, enable_mem_efficient=True):
                 x = F.scaled_dot_product_attention(q, k, v, dropout_p=self.xattn_drop, scale=self.scale)
             x = x.permute(0, 2, 1, 3)  # B, num_heads, N, C -> B, N, num_heads, C

@@ -108,6 +108,8 @@ def create_fsdp_model(model, *, fp16_compression=False, **kwargs):
          # _module_classes_to_ignore=(MultiScaleDeformableAttention,),
     )
 
+    model = model.to(param_dtype)
+
     fsdp = FSDP(
         model,
         auto_wrap_policy=auto_wrap_policy,

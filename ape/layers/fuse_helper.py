@@ -219,8 +219,10 @@ class BiAttentionBlock(nn.Module):
         self.gamma_l = nn.Parameter(init_values * torch.ones((l_dim)), requires_grad=True)
 
     def forward(self, v, l, attention_mask_v=None, attention_mask_l=None):
-        v = self.layer_norm_v(v.float())
-        l = self.layer_norm_l(l.float())
+        # v = self.layer_norm_v(v.float())
+        # l = self.layer_norm_l(l.float())
+        v = self.layer_norm_v(v)
+        l = self.layer_norm_l(l)
         delta_v, delta_l = self.attn(
             v, l, attention_mask_v=attention_mask_v, attention_mask_l=attention_mask_l
         )

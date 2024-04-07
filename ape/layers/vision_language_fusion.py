@@ -45,7 +45,7 @@ class VisionLanguageFusion(torch.nn.Module):
 
     def forward(self, v, l, attention_mask_v=None, attention_mask_l=None):
         if self.use_checkpoint and self.training:
-            return checkpoint.checkpoint(self.b_attn, v, l, attention_mask_v, attention_mask_l)
+            return checkpoint.checkpoint(self.b_attn, v, l, attention_mask_v, attention_mask_l, use_reentrant=False)
         else:
             return self.b_attn(v, l, attention_mask_v, attention_mask_l)
 
