@@ -31,9 +31,10 @@
 - **Flexible.** Support both foreground objects and background stuff for instance segmentation and semantic segmentation.
 
 ## :fire: News
+* **`2024.04.07`** Release checkpoints for APE-Ti with only 6M backbone!
 * **`2024.02.27`** APE has been accepted to CVPR 2024!
 * **`2023.12.05`** Release training codes!
-* **`2023.12.05`** Release checkpoints!
+* **`2023.12.05`** Release checkpoints for APE-L!
 * **`2023.12.05`** Release inference codes and demo!
 
 ## :label: TODO 
@@ -81,10 +82,14 @@ Please feel free to try our [Online Demo](https://huggingface.co/spaces/shenyunh
 ## :books: Data Prepare
 Following [here](https://github.com/shenyunhang/APE/blob/main/datasets/README.md) to prepare the following datasets:
 
-|       |   COCO  |   LVIS  | Objects365 | Openimages | VisualGenome |  SA-1B  | RefCOCO |   GQA   | PhraseCut | Flickr30k |  ODinW  |  SegInW | Roboflow100 |  ADE20k | ADE-full |  BDD10k | Cityscapes |  PC459  |   PC59  |   VOC   |    D3   |
-|:-----:|:-------:|:-------:|:----------:|:----------:|:------------:|:-------:|:-------:|:-------:|:---------:|:---------:|:-------:|:-------:|:-----------:|:-------:|:--------:|:-------:|:----------:|:-------:|:-------:|:-------:|:-------:|
-| Train | &check; | &check; |   &check;  |   &check;  |    &check;   | &check; | &check; | &check; |  &check;  |  &check;  | &cross; | &cross; |   &cross;   | &cross; |  &cross; | &cross; |   &cross;  | &cross; | &cross; | &cross; | &cross; |
-|  Test | &check; | &check; |   &check;  |   &check;  |    &cross;   | &cross; | &check; | &cross; |  &cross;  |  &cross;  | &check; | &check; |   &check;   | &check; |  &check; | &check; |   &check;  | &check; | &check; | &check; | &check; |
+|  Name |   COCO  |   LVIS  |  Objects365 | Openimages | VisualGenome |  SA-1B  |   RefCOCO  |   GQA   | PhraseCut | Flickr30k |         |
+|:-----:|:-------:|:-------:|:-----------:|:----------:|:------------:|:-------:|:----------:|:-------:|:---------:|:---------:|:-------:|
+| Train | &check; | &check; |   &check;   |   &check;  |    &check;   | &check; |   &check;  | &check; |  &check;  |  &check;  |         |
+|  Test | &check; | &check; |   &check;   |   &check;  |    &cross;   | &cross; |   &check;  | &cross; |  &cross;  |  &cross;  |         |
+|       |         |         |             |            |              |         |            |         |           |           |         |
+| Name  |  ODinW  |  SegInW | Roboflow100 |   ADE20k   |   ADE-full   |  BDD10k | Cityscapes |  PC459  |    PC59   |    VOC    |    D3   |
+| Train | &cross; | &cross; |   &cross;   |   &cross;  |    &cross;   | &cross; |   &cross;  | &cross; |  &cross;  |  &cross;  | &cross; |
+|  Test | &check; | &check; |   &check;   |   &check;  |    &check;   | &check; |   &check;  | &check; |  &check;  |  &check;  | &check; |
 
 Noted we do not use `coco_2017_train` for training.
 
@@ -101,17 +106,18 @@ We provide several scripts to evaluate all models.
 It is necessary to adjust the checkpoint location and GPU number in the scripts before running them.
 
 ```bash
-scripts/eval_all_D.sh
-scripts/eval_all_C.sh
-scripts/eval_all_B.sh
-scripts/eval_all_A.sh
+scripts/eval_APE-L_D.sh
+scripts/eval_APE-L_C.sh
+scripts/eval_APE-L_B.sh
+scripts/eval_APE-L_A.sh
+scripts/eval_APE-Ti.sh
 ```
 
 ### Infer on images or videos
 
-APE-D
+APE-L_D
 ```
-python3.9 demo/demo_lazy.py \
+python3 demo/demo_lazy.py \
 --config-file configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4_1080k.py \
 --input image1.jpg image2.jpg image3.jpg \
 --output /path/to/output/dir \
@@ -151,16 +157,17 @@ git clone https://huggingface.co/Yuxin-CV/EVA-02 models/Yuxin-CV/EVA-02/
 
 Resize patch size:
 ```bash
-python3.9 tools/eva_interpolate_patch_14to16.py --input models/QuanSun/EVA-CLIP/EVA02_CLIP_E_psz14_plus_s9B.pt --output models/QuanSun/EVA-CLIP/EVA02_CLIP_E_psz14to16_plus_s9B.pt --image_size 224
-python3.9 tools/eva_interpolate_patch_14to16.py --input models/QuanSun/EVA-CLIP/EVA01_CLIP_g_14_plus_psz14_s11B.pt --output models/QuanSun/EVA-CLIP/EVA01_CLIP_g_14_plus_psz14to16_s11B.pt --image_size 224
-python3.9 tools/eva_interpolate_patch_14to16.py --input models/QuanSun/EVA-CLIP/EVA02_CLIP_L_336_psz14_s6B.pt --output models/QuanSun/EVA-CLIP/EVA02_CLIP_L_336_psz14to16_s6B.pt --image_size 336
+python3 tools/eva_interpolate_patch_14to16.py --input models/QuanSun/EVA-CLIP/EVA02_CLIP_E_psz14_plus_s9B.pt --output models/QuanSun/EVA-CLIP/EVA02_CLIP_E_psz14to16_plus_s9B.pt --image_size 224
+python3 tools/eva_interpolate_patch_14to16.py --input models/QuanSun/EVA-CLIP/EVA01_CLIP_g_14_plus_psz14_s11B.pt --output models/QuanSun/EVA-CLIP/EVA01_CLIP_g_14_plus_psz14to16_s11B.pt --image_size 224
+python3 tools/eva_interpolate_patch_14to16.py --input models/QuanSun/EVA-CLIP/EVA02_CLIP_L_336_psz14_s6B.pt --output models/QuanSun/EVA-CLIP/EVA02_CLIP_L_336_psz14to16_s6B.pt --image_size 336
+python3 tools/eva_interpolate_patch_14to16.py --input models/Yuxin-CV/EVA-02/eva02/pt/eva02_Ti_pt_in21k_p14.pt --output models/Yuxin-CV/EVA-02/eva02/pt/eva02_Ti_pt_in21k_p14to16.pt --image_size 224
 ```
 
-### Train APE-D
+### Train APE-L_D
 
 Single node:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --num-gpus 8 \
 --resume \
 --config-file configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4_1080k_mdl.py \
@@ -169,7 +176,7 @@ train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_
 
 Multiple nodes:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --dist-url="tcp://${MASTER_IP}:${MASTER_PORT}" \
 --num-gpus ${HOST_GPU_NUM} \
 --num-machines ${HOST_NUM} \
@@ -179,11 +186,11 @@ python3.9 tools/train_net.py \
 train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4_1080k_mdl_`date +'%Y%m%d_%H'`0000
 ```
 
-### Train APE-C
+### Train APE-L_C
 
 Single node:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --num-gpus 8 \
 --resume \
 --config-file configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj1024_cp_1080k.py \
@@ -192,7 +199,7 @@ train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO/
 
 Multiple nodes:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --dist-url="tcp://${MASTER_IP}:${MASTER_PORT}" \
 --num-gpus ${HOST_GPU_NUM} \
 --num-machines ${HOST_NUM} \
@@ -202,11 +209,11 @@ python3.9 tools/train_net.py \
 train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj1024_cp_1080k_`date +'%Y%m%d_%H'`0000
 ```
 
-### Train APE-B
+### Train APE-L_B
 
 Single node:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --num-gpus 8 \
 --resume \
 --config-file configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj1024_cp_1080k.py \
@@ -215,7 +222,7 @@ train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_REFCOCO/ape_d
 
 Multiple nodes:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --dist-url="tcp://${MASTER_IP}:${MASTER_PORT}" \
 --num-gpus ${HOST_GPU_NUM} \
 --num-machines ${HOST_NUM} \
@@ -225,11 +232,11 @@ python3.9 tools/train_net.py \
 train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj1024_cp_1080k_`date +'%Y%m%d_%H'`0000
 ```
 
-### Train APE-A
+### Train APE-L_A
 
 Single node:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --num-gpus 8 \
 --resume \
 --config-file configs/LVISCOCOCOCOSTUFF_O365_OID_VG/ape_deta/ape_deta_vitl_eva02_lsj1024_cp_720k.py \
@@ -238,7 +245,7 @@ train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VG/ape_deta/ape_d
 
 Multiple nodes:
 ```bash
-python3.9 tools/train_net.py \
+python3 tools/train_net.py \
 --dist-url="tcp://${MASTER_IP}:${MASTER_PORT}" \
 --num-gpus ${HOST_GPU_NUM} \
 --num-machines ${HOST_NUM} \
@@ -248,6 +255,28 @@ python3.9 tools/train_net.py \
 train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VG/ape_deta/ape_deta_vitl_eva02_lsj1024_cp_720k_`date +'%Y%m%d_%H'`0000
 ```
 
+### Train APE-Ti
+
+Single node:
+```bash
+python3 tools/train_net.py \
+--num-gpus 8 \
+--resume \
+--config-file configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl.py \
+train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl_`date +'%Y%m%d_%H%M%S'`
+```
+
+Multiple nodes:
+```bash
+python3 tools/train_net.py \
+--dist-url="tcp://${MASTER_IP}:${MASTER_PORT}" \
+--num-gpus ${HOST_GPU_NUM} \
+--num-machines ${HOST_NUM} \
+--machine-rank ${INDEX} \
+--resume \
+--config-file configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl.py \
+train.output_dir=output/APE/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl_`date +'%Y%m%d_%H'`0000
+```
 
 
 ## :luggage: Checkpoints
@@ -270,27 +299,33 @@ git clone https://huggingface.co/shenyunhang/APE
   <tbody>
     <tr>
       <th>1</th>
-      <td>APE-A</td>
+      <td>APE-L_A</td>
       <td><a href="https://huggingface.co/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VG/ape_deta/ape_deta_vitl_eva02_lsj_cp_720k_20230504_002019/model_final.pth">HF link</a></td>
       <td><a href="https://github.com/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VG/ape_deta/ape_deta_vitl_eva02_lsj1024_cp_720k.py">link</a></td>
     </tr>
     <tr>
       <th>2</th>
-      <td>APE-B</td>
+      <td>APE-L_B</td>
       <td><a href="https://huggingface.co/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj_cp_1080k_20230702_225418/model_final.pth">HF link</a> 
       <td><a href="https://github.com/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj1024_cp_1080k.py">link</a></td>
     </tr>
     <tr>
       <th>3</th>
-      <td>APE-C</td>
+      <td>APE-L_C</td>
       <td><a href="https://huggingface.co/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj_cp_1080k_20230702_210950/model_final.pth">HF link</a> 
       <td><a href="https://github.com/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO/ape_deta/ape_deta_vitl_eva02_vlf_lsj1024_cp_1080k.py">link</a></td>
     </tr>
     <tr>
       <th>4</th>
-      <td>APE-D</td>
+      <td>APE-L_D</td>
       <td><a href="https://huggingface.co/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4_1080k_mdl_20230829_162438/model_final.pth">HF link</a> 
       <td><a href="https://github.com/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitl_eva02_clip_vlf_lsj1024_cp_16x4_1080k_mdl.py">link</a></td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>APE-Ti</td>
+      <td><a href="https://huggingface.co/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl_20240203_230000/model_final.pth">HF link</a> 
+      <td><a href="https://github.com/shenyunhang/APE/blob/main/configs/LVISCOCOCOCOSTUFF_O365_OID_VGR_SA1B_REFCOCO_GQA_PhraseCut_Flickr30k/ape_deta/ape_deta_vitt_eva02_vlf_lsj1024_cp_16x4_1080k_mdl">link</a></td>
     </tr>
   </tbody>
 </table>
