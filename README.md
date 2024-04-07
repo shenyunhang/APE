@@ -1,11 +1,21 @@
 # APE: Aligning and Prompting Everything All at Once for Universal Visual Perception
 
+
+<!-- 
+<a href='https://github.com/shenyunhang/APE'><img src='https://img.shields.io/badge/Project-Page-Green'></a>
+<a href='https://arxiv.org/abs/2312.02153'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a>
+<a href='https://huggingface.co/spaces/shenyunhang/APE'><img src='https://img.shields.io/badge/%F0%9F%A4%97-Demo-yellow'></a>
+<a href='https://huggingface.co/shenyunhang/APE'><img src='https://img.shields.io/badge/%F0%9F%A4%97-Model-yellow'></a>
+[![Code License](https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg)](https://github.com/tatsu-lab/stanford_alpaca/blob/main/LICENSE)
+-->
+
 <p align="center">
     <img src="./.asset/ape.png" width="96%" height="96%">
 </p>
 
 
 <font size=7><div align='center' > :grapes: \[[Read our arXiv Paper](https://arxiv.org/abs/2312.02153)\] &nbsp; :apple: \[[Try our Online Demo](https://huggingface.co/spaces/shenyunhang/APE)\] </div></font>
+
 
 ---
 
@@ -20,6 +30,11 @@
 - **Perception in the Wild.** Detect and segment **everything** with thousands of vocabularies or language descriptions all at once.
 - **Flexible.** Support both foreground objects and background stuff for instance segmentation and semantic segmentation.
 
+## :fire: News
+* **`2024.02.27`** APE has been accepted to CVPR 2024!
+* **`2023.12.05`** Release training codes!
+* **`2023.12.05`** Release checkpoints!
+* **`2023.12.05`** Release inference codes and demo!
 
 ## :label: TODO 
 
@@ -54,7 +69,7 @@ pip3 install gradio
 cd APE/demo
 python3 app.py
 ```
-If you have GPUs, this demo will detect them and use one GPU.
+This demo will detect GPUs and use one GPU if you have GPUs.
 
 Please feel free to try our [Online Demo](https://huggingface.co/spaces/shenyunhang/APE)!
 
@@ -107,8 +122,20 @@ python3.9 demo/demo_lazy.py \
 --with-sseg \
 --opts \
 train.init_checkpoint=/path/to/APE-D/checkpoint \
+model.model_language.cache_dir="" \
 model.model_vision.select_box_nums_for_evaluation=500 \
 model.model_vision.text_feature_bank_reset=True \
+```
+
+To disable `xformers`, add the following option:
+```
+model.model_vision.backbone.net.xattn=False \
+```
+
+To use `pytorch` version of `MultiScaleDeformableAttention`, add the following option:
+```
+model.model_vision.transformer.encoder.pytorch_attn=True \
+model.model_vision.transformer.decoder.pytorch_attn=True \
 ```
 
 
@@ -279,10 +306,10 @@ git clone https://huggingface.co/shenyunhang/APE
 If you find our work helpful for your research, please consider citing the following BibTeX entry.   
 
 ```bibtex
-@article{shen2023aligning,
+@inproceedings{APE,
   title={Aligning and Prompting Everything All at Once for Universal Visual Perception},
-  author={Yunhang Shen and Chaoyou Fu and Peixian Chen and Mengdan Zhang and Ke Li and Xing Sun and Yunsheng Wu and Shaohui Lin and Rongrong Ji},
-  journal={arXiv preprint arXiv:2312.02153},
-  year={2023}
+  author={Shen, Yunhang and Fu, Chaoyou and Chen, Peixian and Zhang, Mengdan and Li, Ke and Sun, Xing and Wu, Yunsheng and Lin, Shaohui and Ji, Rongrong},
+  journal={CVPR},
+  year={2024}
 }
 ```
