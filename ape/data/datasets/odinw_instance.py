@@ -820,5 +820,5 @@ def register_all_odinw(root):
 
 if __name__.endswith(".odinw_instance"):
     # Assume pre-defined datasets live in `./datasets`.
-    _root = os.getenv("DATASET", "datasets")
+    _root = os.getenv("DETECTRON2_DATASETS", "datasets")
     register_all_odinw(_root)

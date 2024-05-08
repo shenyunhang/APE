@@ -138,5 +138,5 @@ def register_all_seginw(root):
 
 if __name__.endswith(".seginw_instance"):
     # Assume pre-defined datasets live in `./datasets`.
-    _root = os.getenv("DATASET", "datasets")
+    _root = os.getenv("DETECTRON2_DATASETS", "datasets")
     register_all_seginw(_root)

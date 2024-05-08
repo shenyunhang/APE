@@ -94,5 +94,5 @@ def register_all_bdd_semseg(root):
 
 if __name__.endswith(".register_bdd100k_semseg"):
     # Assume pre-defined datasets live in `./datasets`.
-    _root = os.getenv("DATASET", "datasets")
+    _root = os.getenv("DETECTRON2_DATASETS", "datasets")
     register_all_bdd_semseg(_root)
