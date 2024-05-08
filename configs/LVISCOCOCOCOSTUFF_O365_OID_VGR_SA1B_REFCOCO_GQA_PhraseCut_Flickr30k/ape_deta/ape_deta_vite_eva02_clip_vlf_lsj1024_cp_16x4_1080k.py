@@ -95,12 +95,12 @@ model.model_vision.transformer.encoder.vl_layer = L(VisionLanguageFusion)(
     clamp_min_for_underflow=True,
     clamp_max_for_overflow=True,
     use_checkpoint=True,
-    use_attention_mask_v=True,
+    # use_attention_mask_v=True,
 )
 model.model_vision.transformer.encoder.use_act_checkpoint = True
 
 model.model_vision.text_feature_bank = True
-model.model_vision.text_feature_bank_random_size = True
+# model.model_vision.text_feature_bank_random_size = True
 model.model_vision.text_feature_reduce_before_fusion = True
 model.model_vision.text_feature_batch_repeat = True
 model.model_vision.expression_cumulative_gt_class = True

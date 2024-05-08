@@ -10,7 +10,6 @@ from ...common.data.lvis_instance_lsj1024_cp import dataloader
 
 model.model_vision.num_classes = 1203
 model.model_vision.select_box_nums_for_evaluation = 300
-model.model_vision.test_score_thresh = 0.0
 model.model_vision.criterion[0].num_classes = 1203
 model.model_vision.criterion[0].use_fed_loss = True
 model.model_vision.criterion[0].get_fed_loss_cls_weights = lambda: get_fed_loss_cls_weights(

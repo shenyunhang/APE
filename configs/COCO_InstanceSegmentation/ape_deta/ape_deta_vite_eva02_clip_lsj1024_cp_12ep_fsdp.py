@@ -4,7 +4,6 @@ from detectron2.layers import ShapeSpec
 from detectron2.model_zoo import get_config as get_config_d2
 from detrex.config import get_config as get_config_detrex
 from ape.modeling.backbone.vit import get_vit_lr_decay_rate
-
 from ape.modeling.text import EVA02CLIP
 
 from ...common.backbone.vite_eva02_clip_1024 import backbone
