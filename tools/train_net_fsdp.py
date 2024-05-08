@@ -664,7 +664,6 @@ def main(args):
 
     default_setup(cfg, args)
 
-    setup_logger(cfg.train.output_dir, distributed_rank=comm.get_rank(), name="sota")
     setup_logger(cfg.train.output_dir, distributed_rank=comm.get_rank(), name="ape")
     setup_logger(cfg.train.output_dir, distributed_rank=comm.get_rank(), name="timm")
 

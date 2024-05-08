@@ -6,9 +6,6 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-# from sota.modeling.text import build_clip_text_encoder, get_clip_embeddings
-# from ..modeling.text import build_clip_text_encoder, get_clip_embeddings
-
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +51,7 @@ class ZeroShotFC(nn.Module):
             torch.nn.init.normal_(self.linear.weight, std=0.01)
 
         if len(zs_vocabulary) > 0:
-            from sota.modeling.text import get_clip_embeddings
+            from ape.modeling.text import get_clip_embeddings
 
             logger.info("Generating weight for " + zs_vocabulary)
             zs_vocabulary = zs_vocabulary.split(",")
@@ -67,7 +64,7 @@ class ZeroShotFC(nn.Module):
         elif zs_weight_path == "zeros":
             zs_weight = torch.zeros((zs_weight_dim, num_classes))
         elif zs_weight_path == "online":
-            from sota.modeling.text import build_clip_text_encoder
+            from ape.modeling.text import build_clip_text_encoder
 
             zs_weight = torch.zeros((zs_weight_dim, num_classes))
             self.text_encoder = build_clip_text_encoder(text_model, pretrain=True)
@@ -111,7 +108,7 @@ class ZeroShotFC(nn.Module):
             x = self.linear(x)
         if classifier is not None:
             if isinstance(classifier, str):
-                from sota.modeling.text import get_clip_embeddings
+                from ape.modeling.text import get_clip_embeddings
 
                 zs_weight = get_clip_embeddings(
                     self.text_encoder, classifier, prompt="", device=x.device

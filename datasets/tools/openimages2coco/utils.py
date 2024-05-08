@@ -9,7 +9,7 @@ import skimage.io as io
 from tqdm import tqdm
 
 from detectron2.data.detection_utils import read_image
-from sota.data.mapper_utils import mask_to_polygons
+from ape.data.mapper_utils import mask_to_polygons
 
 
 def csvread(file):

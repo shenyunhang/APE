@@ -626,7 +626,6 @@ def main(args):
 
     default_setup(cfg, args)
 
-    setup_logger(cfg.train.output_dir, distributed_rank=comm.get_rank(), name="sota")
     setup_logger(cfg.train.output_dir, distributed_rank=comm.get_rank(), name="ape")
     setup_logger(cfg.train.output_dir, distributed_rank=comm.get_rank(), name="timm")
 
@@ -640,6 +639,7 @@ def main(args):
         logger = logging.getLogger("ape")
         logger.info("Model:\n{}".format(model))
         model.to(cfg.train.device)
+        model.to(torch.float16)
         model = create_ddp_model(model)
 
         ema.may_build_model_ema(cfg, model)

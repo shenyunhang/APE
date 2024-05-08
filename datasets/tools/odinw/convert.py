@@ -6,7 +6,7 @@ from fvcore.common.file_io import PathManager
 
 from detectron2.data import MetadataCatalog
 
-import sota_t
+import ape
 
 
 print(MetadataCatalog.keys())

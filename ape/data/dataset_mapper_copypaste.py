@@ -17,7 +17,7 @@ from detectron2.data.dataset_mapper import DatasetMapper as DatasetMapper_d2
 from detectron2.data.detection_utils import convert_image_to_rgb
 from detectron2.structures import BitMasks, Boxes, Instances
 
-from . import detection_utils as utils_sota
+from . import detection_utils as utils_ape
 from . import mapper_utils
 
 """
@@ -124,10 +124,10 @@ class DatasetMapper_copypaste(DatasetMapper_d2):
 
     @classmethod
     def from_config(cls, cfg, is_train: bool = True):
-        augs = utils_sota.build_augmentation(cfg, is_train)
+        augs = utils_ape.build_augmentation(cfg, is_train)
         augs_d2 = utils.build_augmentation(cfg, is_train)
-        augs_aa = utils_sota.build_augmentation_aa(cfg, is_train)
-        augs_lsj = utils_sota.build_augmentation_lsj(cfg, is_train)
+        augs_aa = utils_ape.build_augmentation_aa(cfg, is_train)
+        augs_lsj = utils_ape.build_augmentation_lsj(cfg, is_train)
         if cfg.INPUT.CROP.ENABLED and is_train:
             raise NotImplementedError("cfg.INPUT.CROP.ENABLED is not supported yet")
             augs.insert(0, T.RandomCrop(cfg.INPUT.CROP.TYPE, cfg.INPUT.CROP.SIZE))

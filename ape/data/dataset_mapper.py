@@ -5,7 +5,7 @@ from detectron2.data import detection_utils as utils
 from detectron2.data import transforms as T
 from detectron2.data.dataset_mapper import DatasetMapper as DatasetMapper_d2
 
-from . import detection_utils as utils_sota
+from . import detection_utils as utils_ape
 
 """
 This file contains the default mapping that's applied to "dataset dicts".
@@ -33,7 +33,7 @@ class DatasetMapper_ape(DatasetMapper_d2):
 
     def __init__(self, cfg, is_train: bool = True):
         super().__init__(cfg, is_train)
-        augmentations = utils_sota.build_augmentation(cfg, is_train)
+        augmentations = utils_ape.build_augmentation(cfg, is_train)
         self.augmentations = T.AugmentationList(augmentations)
 
         logger = logging.getLogger(__name__)

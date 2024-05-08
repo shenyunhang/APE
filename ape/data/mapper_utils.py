@@ -380,7 +380,6 @@ def copypaste(dataset_dict, dataset_dict_bg, image_format, instance_mask_format)
         return None, None
 
 
-# from SotA-T/ape/data/datasets/coco.py
 def maybe_load_annotation_from_file(record, meta=None, extra_annotation_keys=None):
 
     file_name = record["file_name"]

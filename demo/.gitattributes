@@ -1,0 +1,10 @@
+examples/094_56726435.jpg filter=lfs diff=lfs merge=lfs -text
+examples/199_3946193540.jpg filter=lfs diff=lfs merge=lfs -text
+examples/SolvayConference1927.jpg filter=lfs diff=lfs merge=lfs -text
+examples/TheGreatWall.jpg filter=lfs diff=lfs merge=lfs -text
+examples/Totoro01.png filter=lfs diff=lfs merge=lfs -text
+examples/Transformers.webp filter=lfs diff=lfs merge=lfs -text
+examples/013_438973263.jpg filter=lfs diff=lfs merge=lfs -text
+examples/Pisa.jpg filter=lfs diff=lfs merge=lfs -text
+examples/Terminator3.jpg filter=lfs diff=lfs merge=lfs -text
+examples/MatrixRevolutionForZion.jpg filter=lfs diff=lfs merge=lfs -text
